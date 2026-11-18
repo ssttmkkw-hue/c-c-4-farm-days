@@ -80,6 +80,20 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function normalizeChest(chest) {
+  const slots = Array(12).fill(null);
+  if (!Array.isArray(chest)) return slots;
+  for (let i = 0; i < 12 && i < chest.length; i++) {
+    const s = chest[i];
+    const qty = s && Math.floor(Number(s.qty));
+    if (!s || typeof s.id !== 'string' || !qty || qty < 1) continue;
+    slots[i] = { id: s.id, qty };
+    const bonus = Math.floor(Number(s.bonus));
+    if (bonus > 0) slots[i].bonus = bonus;
+  }
+  return slots;
+}
+
 function waypointList(list, fallback) {
   if (!Array.isArray(list) || !list.length) return fallback.map((w) => ({ x: w.x, y: w.y }));
   const cleaned = [];
@@ -132,6 +146,10 @@ export function migrate(data) {
   if (!Number.isFinite(data.hotbar)) data.hotbar = 1;
   data.hotbar = Math.max(0, Math.min(7, data.hotbar | 0));
   if (!hadSeen) data.seenHelp = true;
+
+  data.chest = normalizeChest(data.chest);
+  if (!Number.isFinite(Number(data.weekShip)) || data.weekShip < 0) data.weekShip = 0;
+  else data.weekShip = Math.floor(Number(data.weekShip));
 
   while (data.inventory.length < 16) data.inventory.push(null);
   if (data.upgrades.backpack) {

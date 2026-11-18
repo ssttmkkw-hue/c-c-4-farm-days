@@ -57,6 +57,7 @@ export function createState(lang = 'zh', muted = false) {
     location: 'farm',
     player: { x: 6, y: 6, dir: 'down', walk: 0 },
     inventory,
+    chest: Array(12).fill(null),
     hotbar: 1,
     canWater: 20,
     canMax: 20,
@@ -64,6 +65,7 @@ export function createState(lang = 'zh', muted = false) {
     sprinklers: [],
     plots: emptyPlots(),
     shipping: [],
+    weekShip: 0,
     lastPayout: 0,
     passPenalty: 0,
     animals: [

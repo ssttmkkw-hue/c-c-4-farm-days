@@ -6,11 +6,12 @@ export function countItem(state, id) {
   return n;
 }
 
-export function canFit(state, id, qty) {
+export function canFit(state, id, qty, bonus = 0) {
   let left = qty;
   const max = stackMax(id);
+  const mark = bonus | 0;
   for (const s of state.inventory) {
-    if (s && s.id === id) left -= Math.max(0, max - s.qty);
+    if (s && s.id === id && (s.bonus || 0) === mark) left -= Math.max(0, max - s.qty);
   }
   if (left <= 0) return true;
   let empty = 0;
@@ -18,13 +19,14 @@ export function canFit(state, id, qty) {
   return empty * max >= left;
 }
 
-export function addItem(state, id, qty) {
+export function addItem(state, id, qty, bonus = 0) {
   let left = qty;
   if (left <= 0) return true;
   const max = stackMax(id);
+  const mark = bonus | 0;
   if (isTool(id) && countItem(state, id) > 0) return left === 0;
   for (const s of state.inventory) {
-    if (!s || s.id !== id || s.qty >= max) continue;
+    if (!s || s.id !== id || (s.bonus || 0) !== mark || s.qty >= max) continue;
     const add = Math.min(left, max - s.qty);
     s.qty += add;
     left -= add;
@@ -33,7 +35,7 @@ export function addItem(state, id, qty) {
   for (let i = 0; i < state.inventory.length; i++) {
     if (state.inventory[i]) continue;
     const add = Math.min(left, max);
-    state.inventory[i] = { id, qty: add };
+    state.inventory[i] = mark ? { id, qty: add, bonus: mark } : { id, qty: add };
     left -= add;
     if (left <= 0) return true;
   }
@@ -88,5 +90,5 @@ export function equip(state, id) {
 }
 
 export function shippingValue(state) {
-  return state.shipping.reduce((sum, s) => sum + sellPrice(s.id) * s.qty, 0);
+  return state.shipping.reduce((sum, s) => sum + (sellPrice(s.id) + (s.bonus || 0)) * s.qty, 0);
 }

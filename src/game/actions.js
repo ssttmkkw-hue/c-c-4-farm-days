@@ -10,7 +10,8 @@ import {
   seedCropId,
   sellPrice,
 } from '../data/items.js';
-import { hashStr } from './rng.js';
+import { hashStr, mulberry32 } from './rng.js';
+import { MILK_MOOD_BONUS, moodTier } from './pens.js';
 import { getStock, shopOpen } from './shop.js';
 import {
   DAY_END,
@@ -472,7 +473,9 @@ export function pet(state, animalId) {
   a.mood = Math.min(5, (a.mood || 0) + 1);
   addMinutes(state, COST.pet.t);
   playSfx(state, a.type === 'cow' ? 'cow' : 'chicken');
-  showToast(state, 'toast_pet', { name: a.id });
+  const tier = moodTier(a);
+  const key = tier === 'happy' ? 'toast_pet_happy' : tier === 'low' ? 'toast_pet_low' : 'toast_pet';
+  showToast(state, key, { name: a.id });
   return true;
 }
 
@@ -483,16 +486,18 @@ export function milk(state, animalId) {
     showToast(state, 'toast_no_milk');
     return false;
   }
-  if (!canFit(state, 'milk', 1)) {
+  const bonus = a.milkBonus > 0 ? MILK_MOOD_BONUS : 0;
+  if (!canFit(state, 'milk', 1, bonus)) {
     showToast(state, 'toast_full');
     return false;
   }
   if (!spendEnergy(state, COST.milk.e)) return false;
-  addItem(state, 'milk', 1);
+  addItem(state, 'milk', 1, bonus);
   a.hasMilk = false;
+  a.milkBonus = 0;
   addMinutes(state, COST.milk.t);
   playSfx(state, 'cow');
-  showToast(state, 'toast_milk');
+  showToast(state, bonus ? 'toast_milk_happy' : 'toast_milk');
   maybePassout(state);
   return true;
 }
@@ -500,20 +505,25 @@ export function milk(state, animalId) {
 export function collectEgg(state, animalId) {
   const a = animalById(state, animalId);
   if (!a || a.type !== 'chicken') return false;
-  if (!a.hasEgg) {
+  let n = a.eggCount | 0;
+  if (n < 1 && a.hasEgg) n = 1;
+  if (n < 1) {
     showToast(state, 'toast_no_egg');
     return false;
   }
-  if (!canFit(state, 'egg', 1)) {
+  const take = canFit(state, 'egg', n) ? n : (canFit(state, 'egg', 1) ? 1 : 0);
+  if (!take) {
     showToast(state, 'toast_full');
     return false;
   }
   if (!spendEnergy(state, COST.pickup.e)) return false;
-  addItem(state, 'egg', 1);
-  a.hasEgg = false;
+  addItem(state, 'egg', take);
+  const left = n - take;
+  a.eggCount = left;
+  a.hasEgg = left > 0;
   addMinutes(state, COST.pickup.t);
   playSfx(state, 'chicken');
-  showToast(state, 'toast_egg');
+  showToast(state, take > 1 ? 'toast_egg_bonus' : 'toast_egg');
   maybePassout(state);
   return true;
 }
@@ -572,7 +582,8 @@ export function talk(state, npcId) {
   const hearts = state.hearts[npcId] || 0;
   const tier = hearts >= 4 ? 'high' : hearts >= 2 ? 'mid' : 'low';
   const variants = def.lines[tier];
-  const pick = variants[(state.day + hashStr(npcId)) % variants.length];
+  let pick = variants[(state.day + hashStr(npcId)) % variants.length];
+  if (state.weather === 'rain' && def.rain) pick = [def.rain];
   state.dialogue = { npcId, pages: pick, page: 0 };
   state.panel = 'dialogue';
   addMinutes(state, 6);
@@ -710,9 +721,10 @@ export function shipSlot(state, slot) {
     showToast(state, 'toast_no_sell');
     return false;
   }
-  const found = state.shipping.find((s) => s.id === item.id);
+  const bonus = item.bonus || 0;
+  const found = state.shipping.find((s) => s.id === item.id && (s.bonus || 0) === bonus);
   if (found) found.qty += item.qty;
-  else state.shipping.push({ id: item.id, qty: item.qty });
+  else state.shipping.push(bonus ? { id: item.id, qty: item.qty, bonus } : { id: item.id, qty: item.qty });
   state.inventory[slot] = null;
   if (state.hotbar === slot) {
     /* keep index */
@@ -727,14 +739,53 @@ export function collectShipping(state) {
   return shipSlot(state, slot);
 }
 
+export function ensureChest(state) {
+  if (!Array.isArray(state.chest)) state.chest = Array(12).fill(null);
+  while (state.chest.length < 12) state.chest.push(null);
+  if (state.chest.length > 12) state.chest.length = 12;
+  return state.chest;
+}
+
+/** Move a whole stack between the bag and the chest. `from` is 'bag' or 'chest'. */
+export function chestMove(state, from, index) {
+  if (!state || !state.inventory) return false;
+  const chest = ensureChest(state);
+  const i = Number(index);
+  if (!Number.isInteger(i)) return false;
+  const fromChest = from === 'chest';
+  if (!fromChest && from !== 'bag' && from !== 'inventory') return false;
+  const src = fromChest ? chest : state.inventory;
+  const dst = fromChest ? state : { inventory: chest };
+  if (i < 0 || i >= src.length) return false;
+  const item = src[i];
+  if (!item || !item.id || !(item.qty > 0)) return false;
+  const bonus = item.bonus || 0;
+  if (!canFit(dst, item.id, item.qty, bonus)) {
+    showToast(state, 'toast_no_fit');
+    return false;
+  }
+  const moving = bonus ? { id: item.id, qty: item.qty, bonus } : { id: item.id, qty: item.qty };
+  src[i] = null;
+  if (!addItem(dst, moving.id, moving.qty, bonus)) {
+    src[i] = moving;
+    showToast(state, 'toast_no_fit');
+    return false;
+  }
+  playSfx(state, 'pickup');
+  return true;
+}
+
 export function unship(state, index) {
   const s = state.shipping[index];
   if (!s) return false;
-  if (!canFit(state, s.id, s.qty)) {
+  if (!canFit(state, s.id, s.qty, s.bonus || 0)) {
     showToast(state, 'toast_full');
     return false;
   }
-  addItem(state, s.id, s.qty);
+  if (!addItem(state, s.id, s.qty, s.bonus || 0)) {
+    showToast(state, 'toast_full');
+    return false;
+  }
   state.shipping.splice(index, 1);
   playSfx(state, 'pickup');
   return true;
@@ -756,11 +807,21 @@ function waterFromSky(state) {
   }
 }
 
+function dayRoll(state, salt) {
+  const key = state.year + '|' + state.season + '|' + state.day + '|' + salt;
+  return mulberry32(hashStr(key))();
+}
+
 export function endDay(state, reason) {
+  const closedDay = state.day;
   let gold = shippingValue(state);
   state.shipping = [];
   state.money += gold;
   state.lastPayout = gold;
+  state.weekShip = (Number(state.weekShip) || 0) + gold;
+  const weekTotal = state.weekShip;
+  const weekEnd = closedDay === 7 || closedDay === 14 || closedDay === 21 || closedDay === 28;
+  if (weekEnd) state.weekShip = 0;
 
   let wilted = 0;
   for (const p of Object.values(state.plots)) {
@@ -784,9 +845,20 @@ export function endDay(state, reason) {
   }
 
   for (const a of state.animals) {
-    if (a.type === 'chicken' && a.fed) a.hasEgg = true;
-    if (a.type === 'cow' && a.fed) a.hasMilk = true;
-    if (!a.fed) a.mood = Math.max(2, a.mood || 2);
+    if (a.type === 'chicken' && a.fed) {
+      const laid = moodTier(a) === 'happy' && dayRoll(state, a.id) < 0.25 ? 2 : 1;
+      const heldEggs = Math.max(a.eggCount | 0, a.hasEgg ? 1 : 0);
+      const next = Math.max(heldEggs, laid);
+      a.eggCount = next;
+      a.hasEgg = next > 0;
+    }
+    if (a.type === 'cow' && a.fed) {
+      const already = !!a.hasMilk;
+      a.hasMilk = true;
+      if (moodTier(a) === 'happy') a.milkBonus = MILK_MOOD_BONUS;
+      else if (!already) a.milkBonus = 0;
+    }
+    if (!a.fed) a.mood = Math.max(1, (Number(a.mood) || 1) - 1);
     a.fed = false;
     a.petted = false;
   }
@@ -821,7 +893,8 @@ export function endDay(state, reason) {
     state.passPenalty = pen;
   }
   if (reason !== 'passout') {
-    if (gold > 0) showToast(state, 'toast_morning', { gold });
+    if (weekEnd) showToast(state, 'toast_week', { gold: weekTotal });
+    else if (gold > 0) showToast(state, 'toast_morning', { gold });
     else if (wilted > 0) showToast(state, 'toast_wilted');
     else if (date.changed) showToast(state, 'toast_season', { name: state.season });
     else showToast(state, 'toast_morning_zero');
@@ -924,7 +997,8 @@ function tileObject(state, map, x, y, standing) {
     return true;
   }
   if (ch === 'c') {
-    state.panel = 'inventory';
+    ensureChest(state);
+    state.panel = 'chest';
     playSfx(state, 'ui');
     return true;
   }

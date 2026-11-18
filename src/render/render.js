@@ -3,6 +3,7 @@ import { CROPS } from '../data/crops.js';
 import { t } from '../data/strings.js';
 import { phaseOf } from '../game/calendar.js';
 import { aimTile, hintTile } from '../game/actions.js';
+import { moodTier } from '../game/pens.js';
 import { plotAt } from '../game/state.js';
 import { getMap } from '../world/maps.js';
 import { TILE, VIEW_H, VIEW_W, tileAt } from '../world/tiles.js';
@@ -123,6 +124,7 @@ export function render(ctx, state) {
           const hop = phase % 9 === 0 ? -1 : 0;
           if (a.type === 'cow') drawCow(ctx, sx, sy + hop, step, a.hasMilk, phase % 4 === 0);
           else drawChicken(ctx, sx, sy + hop, a.id, step, a.hasEgg, a.dir === 'idle' || phase % 6 === 0);
+          drawMoodMark(ctx, sx, sy + hop, moodTier(a));
         },
       });
     }
@@ -176,6 +178,16 @@ export function render(ctx, state) {
   }
 
   drawAtmosphere(ctx, state);
+}
+
+function drawMoodMark(ctx, sx, sy, tier) {
+  const color = tier === 'happy' ? '#c4503a' : tier === 'low' ? '#8a7a72' : '#f3b7c4';
+  const y = sy - 5;
+  px(ctx, sx + 5, y, 2, 2, color);
+  px(ctx, sx + 8, y, 2, 2, color);
+  px(ctx, sx + 4, y + 2, 7, 2, color);
+  px(ctx, sx + 5, y + 4, 5, 1, color);
+  px(ctx, sx + 6, y + 5, 3, 1, color);
 }
 
 function skyColor(state) {

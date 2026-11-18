@@ -19,6 +19,7 @@ export const NPC_DEFS = [
     liked: 'egg',
     disliked: 'forage_cone',
     look: 'hua',
+    rain: L('雨天店里更暖。种子不会淋湿。', 'The shop is warmer when it rains. The seeds stay dry.'),
     waypoints: [
       { x: 15, y: 6 },
       { x: 17, y: 6 },
@@ -68,6 +69,7 @@ export const NPC_DEFS = [
     liked: 'turnip',
     disliked: 'pumpkin',
     look: 'mei',
+    rain: L('雨把小路洗亮了。我在屋檐下数水滴。', 'The rain polished the path. I am counting drops under the eaves.'),
     waypoints: [
       { x: 4, y: 6 },
       { x: 8, y: 6 },
@@ -117,6 +119,7 @@ export const NPC_DEFS = [
     liked: 'corn',
     disliked: 'egg',
     look: 'lin',
+    rain: L('雨天钉子容易滑。我今天只量木头。', 'Nails slip in the rain. Today I only measure wood.'),
     waypoints: [
       { x: 25, y: 6 },
       { x: 21, y: 6 },
@@ -166,6 +169,7 @@ export const NPC_DEFS = [
     liked: 'milk',
     disliked: 'tomato',
     look: 'wei',
+    rain: L('下雨的牛奶要温得慢一点。', 'Rainy-day milk should be warmed slowly.'),
     waypoints: [
       { x: 8, y: 13 },
       { x: 10, y: 14 },
@@ -215,6 +219,7 @@ export const NPC_DEFS = [
     liked: 'pumpkin',
     disliked: 'corn',
     look: 'tao',
+    rain: L('听雨比听钟准。今天适合烤南瓜。', 'Rain keeps better time than a clock. A good day to roast pumpkin.'),
     waypoints: [
       { x: 16, y: 14 },
       { x: 14, y: 15 },

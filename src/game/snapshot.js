@@ -19,6 +19,7 @@ export function snapshot(state) {
       tool: null,
       selectedSeed: null,
       inventory: [],
+      chest: [],
       field: [],
       animals: [],
       npcs: [],
@@ -59,7 +60,10 @@ export function snapshot(state) {
     tool,
     selectedSeed: isSeed(tool) ? seedCropId(tool) : null,
     inventory: state.inventory
-      .map((s, i) => (s ? { slot: i, id: s.id, qty: s.qty } : null))
+      .map((s, i) => (s ? { slot: i, id: s.id, qty: s.qty, ...(s.bonus ? { bonus: s.bonus } : {}) } : null))
+      .filter(Boolean),
+    chest: (Array.isArray(state.chest) ? state.chest : [])
+      .map((s, i) => (s ? { slot: i, id: s.id, qty: s.qty, ...(s.bonus ? { bonus: s.bonus } : {}) } : null))
       .filter(Boolean),
     field,
     animals: state.animals.map((a) => ({
@@ -85,6 +89,11 @@ export function snapshot(state) {
     lastPayout: state.lastPayout || 0,
     canWater: state.canWater,
     canMax: state.canMax,
-    shipping: state.shipping.map((s) => ({ id: s.id, qty: s.qty })),
+    shipping: state.shipping.map((s) => ({
+      id: s.id,
+      qty: s.qty,
+      ...(s.bonus ? { bonus: s.bonus } : {}),
+    })),
+    weekShip: state.weekShip || 0,
   };
 }

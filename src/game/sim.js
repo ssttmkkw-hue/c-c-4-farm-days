@@ -1,5 +1,6 @@
 import {
   advanceDialogue,
+  chestMove,
   closePanel,
   doPassout,
   give,
@@ -81,6 +82,17 @@ function handleInput(state, input, dt) {
     if (pressed.interact) sleep(state);
     return;
   }
+  if (state.panel === 'chest') {
+    if (pressed.use || pressed.interact) {
+      const slot = state.hotbar;
+      if (state.inventory[slot]) chestMove(state, 'bag', slot);
+      else {
+        const idx = (state.chest || []).findIndex((s) => s);
+        if (idx >= 0) chestMove(state, 'chest', idx);
+      }
+    }
+    return;
+  }
   if (state.panel === 'help' || state.panel === 'notice' || state.panel === 'passout') {
     if (pressed.interact || pressed.close) {
       if (state.panel === 'help') state.seenHelp = true;
@@ -108,6 +120,29 @@ function holdRepeats(state) {
   return id === 'hoe' || id === 'can';
 }
 
+/** True when (x, y) is within r tiles of an NPC on the player's map. */
+export function npcBlocked(state, x, y, r) {
+  return npcDistance(state, x, y) < r;
+}
+
+function npcDistance(state, x, y) {
+  let best = Infinity;
+  const loc = state && state.location;
+  for (const n of (state && state.npcs) || []) {
+    if (n.map !== loc) continue;
+    const d = Math.hypot(n.x - x, n.y - y);
+    if (d < best) best = d;
+  }
+  return best;
+}
+
+function playerStepOk(state, map, x, y) {
+  if (bodyBlocked(map, x, y)) return false;
+  if (!npcBlocked(state, x, y, 0.6)) return true;
+  // Already overlapping: allow a step that walks away so the farmer is not stuck.
+  return npcDistance(state, x, y) > npcDistance(state, state.player.x, state.player.y) + 1e-4;
+}
+
 function movePlayer(state, input, dt) {
   let vx = input.x || 0;
   let vy = input.y || 0;
@@ -124,9 +159,9 @@ function movePlayer(state, input, dt) {
   const sp = 3.15 * dt;
   const map = getMap(state.location);
   const nx = state.player.x + vx * sp;
-  if (!bodyBlocked(map, nx, state.player.y)) state.player.x = nx;
+  if (playerStepOk(state, map, nx, state.player.y)) state.player.x = nx;
   const ny = state.player.y + vy * sp;
-  if (!bodyBlocked(map, state.player.x, ny)) state.player.y = ny;
+  if (playerStepOk(state, map, state.player.x, ny)) state.player.y = ny;
   if (Math.abs(vx) > Math.abs(vy)) state.player.dir = vx > 0 ? 'right' : 'left';
   else state.player.dir = vy > 0 ? 'down' : 'up';
   state.player.walk = (state.player.walk || 0) + dt;
@@ -177,6 +212,10 @@ function wanderNpcs(state, dt) {
     const dy = target.y - n.y;
     const dist = Math.hypot(dx, dy);
     if (dist < 0.06) {
+      if (npcStepBlocked(state, n, target.x, target.y)) {
+        n.pause = 0.3;
+        continue;
+      }
       n.x = target.x;
       n.y = target.y;
       n.wi = (n.wi + 1) % wps.length;
@@ -184,10 +223,23 @@ function wanderNpcs(state, dt) {
       continue;
     }
     const step = Math.min(dist, 0.9 * dt);
-    n.x += (dx / dist) * step;
-    n.y += (dy / dist) * step;
+    const nx = n.x + (dx / dist) * step;
+    const ny = n.y + (dy / dist) * step;
+    if (npcStepBlocked(state, n, nx, ny)) {
+      n.pause = 0.3;
+      continue;
+    }
+    n.x = nx;
+    n.y = ny;
     n.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
   }
+}
+
+function npcStepBlocked(state, n, x, y) {
+  const map = getMap(n.map);
+  if (bodyBlocked(map, x, y)) return true;
+  if (n.map !== state.location) return false;
+  return Math.hypot(state.player.x - x, state.player.y - y) < 0.7;
 }
 
 function clamp(v, a, b) {

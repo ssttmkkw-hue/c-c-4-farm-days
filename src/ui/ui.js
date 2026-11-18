@@ -4,6 +4,7 @@ import { itemName, t } from '../data/strings.js';
 import { npcDef } from '../data/dialogues.js';
 import {
   buy,
+  chestMove,
   closePanel,
   give,
   shipSlot,
@@ -75,6 +76,8 @@ export function createUi(ctx) {
     } else if (act === 'sleep') sleep(state);
     else if (act === 'slot') selectSlot(state, Number(b.dataset.slot));
     else if (act === 'ship') shipSlot(state, Number(b.dataset.slot));
+    else if (act === 'to-chest') chestMove(state, 'bag', Number(b.dataset.slot));
+    else if (act === 'to-bag') chestMove(state, 'chest', Number(b.dataset.slot));
     else if (act === 'unship') unship(state, Number(b.dataset.index));
     else if (act === 'buy') buy(state, b.dataset.id, Number(b.dataset.qty) || 1);
     else if (act === 'give') {
@@ -325,6 +328,14 @@ export function createUi(ctx) {
         grid(state, L, 'slot'),
         '<button type="button" data-act="close">' + esc(t(L, 'close')) + '</button>',
       ]);
+    } else if (state.panel === 'chest') {
+      const chest = Array.isArray(state.chest) ? state.chest : [];
+      html = card(t(L, 'chest_title'), [
+        '<p class="hint">' + esc(t(L, 'chest_hint')) + '</p>',
+        '<div class="split"><div><h3>' + esc(t(L, 'inv_title')) + '</h3>' + grid(state, L, 'to-chest') + '</div>',
+        '<div><h3>' + esc(t(L, 'chest_title')) + '</h3>' + slotGrid(chest, L, 'to-bag') + '</div></div>',
+        '<button type="button" data-act="close">' + esc(t(L, 'close')) + '</button>',
+      ]);
     } else if (state.panel === 'shipping') {
       const rows = state.shipping.map((s, i) => itemButton(L, s, 'unship', 'data-index="' + i + '"')).join('') || '<p>' + esc(t(L, 'ship_empty')) + '</p>';
       html = card(t(L, 'ship_title'), [
@@ -424,17 +435,22 @@ export function createUi(ctx) {
   }
 
   function grid(state, L, act) {
+    return slotGrid(state.inventory, L, act, state.hotbar);
+  }
+
+  function slotGrid(slots, L, act, hotbar) {
     const bits = [];
-    for (let i = 0; i < state.inventory.length; i++) {
-      const item = state.inventory[i];
+    for (let i = 0; i < slots.length; i++) {
+      const item = slots[i];
       if (!item) {
         bits.push('<span class="slot ghost"></span>');
         continue;
       }
-      bits.push('<button type="button" class="slot' + (i === state.hotbar ? ' selected' : '') + '" data-act="' + act + '" data-slot="' + i + '">'
+      const mark = item.bonus ? ' +' + item.bonus : '';
+      bits.push('<button type="button" class="slot' + (i === hotbar ? ' selected' : '') + '" data-act="' + act + '" data-slot="' + i + '">'
         + '<img alt="" src="' + iconURL(item.id) + '">'
         + (item.qty > 1 ? '<em>' + item.qty + '</em>' : '')
-        + '<small>' + esc(itemName(L, item.id)) + '</small></button>');
+        + '<small>' + esc(itemName(L, item.id) + mark) + '</small></button>');
     }
     return '<div class="grid">' + bits.join('') + '</div>';
   }
@@ -451,6 +467,7 @@ export function createUi(ctx) {
       n: state.noticeKey,
       lang: state.lang,
       inv: state.inventory,
+      chest: state.chest,
       hot: state.hotbar,
       ship: state.shipping,
       money: state.money,

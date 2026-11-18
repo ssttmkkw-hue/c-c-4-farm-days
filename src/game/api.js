@@ -1,6 +1,7 @@
 import {
   aimTile,
   buy,
+  chestMove as moveChestStack,
   collectShipping,
   doPassout,
   equip,
@@ -309,6 +310,15 @@ export function createApi(ctx) {
       try {
         if (!playable()) return false;
         return after(buy(ctx.state, itemId, qty));
+      } catch (err) {
+        console.error(err);
+        return false;
+      }
+    },
+    chestMove(from, index) {
+      try {
+        if (!playable()) return false;
+        return after(moveChestStack(ctx.state, from, index));
       } catch (err) {
         console.error(err);
         return false;

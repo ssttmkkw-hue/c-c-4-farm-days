@@ -20,3 +20,14 @@ export function clampAnimal(animal) {
   animal.y = clamp(Number.isFinite(y) ? y : (pen.y0 + pen.y1) / 2, pen.y0, pen.y1);
   return animal;
 }
+
+/** Happy milk sells for this much above the 90 G base. The base price stays 90. */
+export const MILK_MOOD_BONUS = 10;
+
+/** 5 happy, 3–4 normal, 2 or below low. */
+export function moodTier(animal) {
+  const mood = Number(animal && animal.mood);
+  if (!Number.isFinite(mood) || mood < 3) return 'low';
+  if (mood < 5) return 'normal';
+  return 'happy';
+}
