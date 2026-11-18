@@ -25,19 +25,37 @@ export function cameraFor(state) {
   return { x, y, map };
 }
 
-export function fitCanvas(canvas, reserveBottom) {
-  const chrome = 28;
-  const maxW = Math.max(160, window.innerWidth - chrome);
-  const maxH = Math.max(140, window.innerHeight - reserveBottom - 12);
-  let scale = Math.floor(Math.min(maxW / VIEW_W, maxH / VIEW_H));
-  if (scale < 1) scale = 1;
+export function fitCanvas(canvas, reserveBottom, labels) {
+  const narrow = window.innerWidth < 900 || window.innerHeight < 520;
+  const maxW = Math.max(120, window.innerWidth - 16);
+  const maxH = Math.max(72, window.innerHeight - reserveBottom);
+  let scale = Math.min(maxW / VIEW_W, maxH / VIEW_H);
+  if (!narrow) scale = Math.floor(scale);
+  if (!narrow && scale < 1) scale = 1;
+  if (narrow && scale < 0.45) scale = 0.45;
   if (scale > 5) scale = 5;
-  if (canvas.dataset.scale !== String(scale)) {
+  scale = Math.round(scale * 100) / 100;
+  const cssW = Math.round(VIEW_W * scale);
+  const cssH = Math.round(VIEW_H * scale);
+  if (canvas.dataset.scale !== String(scale) || canvas.style.width !== cssW + 'px') {
     canvas.dataset.scale = String(scale);
     canvas.width = VIEW_W;
     canvas.height = VIEW_H;
-    canvas.style.width = VIEW_W * scale + 'px';
-    canvas.style.height = VIEW_H * scale + 'px';
+    canvas.style.width = cssW + 'px';
+    canvas.style.height = cssH + 'px';
+  }
+  if (labels) {
+    const dpr = Math.min(2, (typeof window !== 'undefined' && window.devicePixelRatio) || 1);
+    const bw = Math.max(1, Math.round(cssW * dpr));
+    const bh = Math.max(1, Math.round(cssH * dpr));
+    if (labels.width !== bw || labels.height !== bh) {
+      labels.width = bw;
+      labels.height = bh;
+    }
+    labels.style.width = cssW + 'px';
+    labels.style.height = cssH + 'px';
+    labels.dataset.dpr = String(dpr);
+    labels.dataset.scale = String(scale);
   }
   document.documentElement.style.setProperty('--s', String(scale));
   return scale;
@@ -79,12 +97,19 @@ export function render(ctx, state) {
     }
   }
 
+  if (state.location === 'house' && state.upgrades && state.upgrades.hearth) {
+    ents.push({
+      y: 1.45,
+      draw: () => drawWindowBox(ctx, 6 * TILE - camX, 1 * TILE - camY),
+    });
+  }
+
   if (state.location === 'farm') {
     ents.push({
       y: 8.2,
-      draw: () => drawBarn(ctx, 13 * TILE - camX, 7 * TILE - camY),
+      draw: () => drawBarn(ctx, 13 * TILE - camX, 7 * TILE - camY, !!(state.upgrades && state.upgrades.coop)),
     });
-    for (const sp of state.sprinklers) {
+    for (const sp of state.sprinklers || []) {
       ents.push({ y: sp.y, draw: () => drawSprinkler(ctx, sp.x * TILE - camX, sp.y * TILE - camY) });
     }
     for (const a of state.animals) {
@@ -150,7 +175,6 @@ export function render(ctx, state) {
     ctx.strokeRect(ax + 0.5, ay + 0.5, 15, 15);
   }
 
-  drawSigns(ctx, state, map, camX, camY, x0, y0, x1, y1);
   drawAtmosphere(ctx, state);
 }
 
@@ -514,9 +538,9 @@ function drawHay(ctx, sx, sy) {
   px(ctx, sx + 4, sy + 9, 8, 3, '#c47a4a');
 }
 
-function drawBarn(ctx, sx, sy) {
+function drawBarn(ctx, sx, sy, upgraded) {
   const w = 16 * 6;
-  px(ctx, sx, sy, w, 8, '#c4503a');
+  px(ctx, sx, sy, w, 8, upgraded ? '#e07a32' : '#c4503a');
   px(ctx, sx, sy + 8, w, 4, '#8d3428');
   px(ctx, sx + 4, sy + 12, 4, 18, '#f3e2c4');
   px(ctx, sx + w - 8, sy + 12, 4, 18, '#f3e2c4');
@@ -524,7 +548,19 @@ function drawBarn(ctx, sx, sy) {
   px(ctx, sx + 44, sy + 18, 18, 10, '#e6c15a');
   px(ctx, sx + 24, sy + 14, 10, 6, '#c47a4a');
   px(ctx, sx + w / 2 - 8, sy + 1, 16, 6, '#f6edd8');
-  px(ctx, sx + w / 2 - 6, sy + 2, 12, 1, '#c4503a');
+  px(ctx, sx + w / 2 - 6, sy + 2, 12, 1, upgraded ? '#e6c15a' : '#c4503a');
+  if (upgraded) {
+    px(ctx, sx + w / 2 - 1, sy - 7, 2, 8, '#e6c15a');
+    px(ctx, sx + w / 2 - 1, sy - 7, 8, 2, '#fffaf2');
+  }
+}
+
+function drawWindowBox(ctx, sx, sy) {
+  px(ctx, sx + 1, sy + 10, 14, 4, '#6e4324');
+  px(ctx, sx + 2, sy + 9, 12, 2, '#a56b3c');
+  px(ctx, sx + 3, sy + 5, 3, 5, '#e04b3a');
+  px(ctx, sx + 7, sy + 4, 3, 6, '#f3b7c4');
+  px(ctx, sx + 11, sy + 6, 3, 4, '#6eaf45');
 }
 
 function drawIndoorMargin(ctx) {
@@ -601,29 +637,55 @@ function interactKey(state) {
   return 'E';
 }
 
-function drawPlate(ctx, cx, sy, text, hot) {
+function drawScreenPlate(ctx, cx, cy, text, hot, dpr, viewW, viewH, scale) {
   ctx.save();
-  ctx.font = 'bold 8px "Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif';
-  ctx.textBaseline = 'top';
-  const w = Math.min(78, Math.ceil(ctx.measureText(text).width) + 6);
-  const h = 11;
-  const x = Math.round(cx - w / 2);
-  const y = Math.round(sy);
-  px(ctx, x, y, w, h, hot ? '#e6c15a' : '#fffaf2');
-  px(ctx, x, y, w, 1, '#2c241c');
-  px(ctx, x, y + h - 1, w, 1, '#2c241c');
-  px(ctx, x, y, 1, h, '#2c241c');
-  px(ctx, x + w - 1, y, 1, h, '#2c241c');
+  const css = Math.min(22, Math.max(13, Math.round(8 * (scale || 1))));
+  const size = Math.round(css * dpr);
+  ctx.font = '700 ' + size + 'px "Avenir Next", "Segoe UI", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif';
+  ctx.textBaseline = 'middle';
+  const padX = Math.round(5 * dpr);
+  const boxH = Math.round(size + 6 * dpr);
+  const measured = Math.ceil(ctx.measureText(text).width) + padX * 2;
+  const boxW = Math.min(viewW - 4, Math.max(measured, Math.round(16 * dpr)));
+  const margin = 2;
+  let x = Math.round(cx - boxW / 2);
+  let y = Math.round(cy);
+  if (x < margin) x = margin;
+  if (y < margin) y = margin;
+  if (x + boxW > viewW - margin) x = Math.max(margin, viewW - margin - boxW);
+  if (y + boxH > viewH - margin) y = Math.max(margin, viewH - margin - boxH);
+  ctx.fillStyle = hot ? '#e6c15a' : '#fffaf2';
+  ctx.fillRect(x, y, boxW, boxH);
+  ctx.strokeStyle = '#2c241c';
+  ctx.lineWidth = Math.max(1, dpr);
+  ctx.strokeRect(x + 0.5, y + 0.5, boxW - 1, boxH - 1);
   ctx.fillStyle = '#2c241c';
-  ctx.fillText(text, x + 3, y + 1);
+  ctx.beginPath();
+  ctx.rect(x, y, boxW, boxH);
+  ctx.clip();
+  ctx.fillText(text, x + padX, y + boxH / 2);
   ctx.restore();
 }
 
-function drawSigns(ctx, state, map, camX, camY, x0, y0, x1, y1) {
+export function renderLabels(ctx, state, scale, dpr) {
+  const viewW = ctx.canvas.width;
+  const viewH = ctx.canvas.height;
+  ctx.clearRect(0, 0, viewW, viewH);
+  if (!state?.player || !state.location || !viewW || !viewH) return;
+  const safeScale = scale > 0 ? scale : 1;
+  const safeDpr = dpr > 0 ? dpr : 1;
+  const { x: camX, y: camY, map } = cameraFor(state);
   const lang = state.lang === 'en' ? 'en' : 'zh';
   const hint = hintTile(state);
-  const bob = hint ? (Math.floor(state.time * 1.4) % 2) : 0;
+  const bob = hint ? (Math.floor((state.time || 0) * 1.4) % 2) * safeScale * safeDpr : 0;
   const indoor = state.location === 'house' || state.location === 'shop';
+  const x0 = Math.max(0, Math.floor(camX / TILE) - 1);
+  const y0 = Math.max(0, Math.floor(camY / TILE) - 1);
+  const x1 = Math.min(map.w, Math.ceil((camX + VIEW_W) / TILE) + 1);
+  const y1 = Math.min(map.h, Math.ceil((camY + VIEW_H) / TILE) + 1);
+  const toX = (tx) => (tx * TILE - camX) * safeScale * safeDpr;
+  const toY = (ty) => (ty * TILE - camY) * safeScale * safeDpr;
+
   for (let y = y0; y < y1; y++) {
     for (let x = x0; x < x1; x++) {
       const ch = tileAt(map, x, y);
@@ -632,11 +694,31 @@ function drawSigns(ctx, state, map, camX, camY, x0, y0, x1, y1) {
       if (!id || !signAnchor(map, x, y, ch)) continue;
       const near = hint && !hint.float && hint.id === id && Math.abs(hint.x - x) + Math.abs(hint.y - y) <= 12;
       const label = (near ? interactKey(state) + ' ' : '') + t(lang, 'sign_' + id);
-      drawPlate(ctx, x * TILE - camX + 8, y * TILE - camY - 12 - (near ? bob : 0), label, !!near);
+      drawScreenPlate(
+        ctx,
+        toX(x) + 8 * safeScale * safeDpr,
+        toY(y) - 12 * safeScale * safeDpr - (near ? bob : 0),
+        label,
+        !!near,
+        safeDpr,
+        viewW,
+        viewH,
+        safeScale,
+      );
     }
   }
   if (hint && hint.float) {
     const label = interactKey(state) + ' ' + t(lang, 'sign_' + hint.id);
-    drawPlate(ctx, hint.x * TILE - camX + 8, hint.y * TILE - camY - 18 - bob, label, true);
+    drawScreenPlate(
+      ctx,
+      toX(hint.x) + 8 * safeScale * safeDpr,
+      toY(hint.y) - 18 * safeScale * safeDpr - bob,
+      label,
+      true,
+      safeDpr,
+      viewW,
+      viewH,
+      safeScale,
+    );
   }
 }

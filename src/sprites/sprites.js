@@ -216,6 +216,18 @@ function drawIcon(ctx, id) {
     px(ctx, 6, 11, 4, 2, '#f3e2c4');
     return;
   }
+  if (id === 'cocoa') {
+    px(ctx, 5, 3, 6, 2, '#fffaf2');
+    px(ctx, 4, 5, 8, 8, '#6e4324');
+    px(ctx, 6, 7, 4, 3, '#a56b3c');
+    return;
+  }
+  if (id === 'pumpkin_cake') {
+    px(ctx, 3, 6, 10, 6, '#e67a22');
+    px(ctx, 3, 5, 10, 2, '#f6edd8');
+    px(ctx, 7, 3, 2, 3, '#c4503a');
+    return;
+  }
   if (id === 'milk') {
     px(ctx, 5, 2, 6, 3, '#fffaf2');
     px(ctx, 4, 5, 8, 8, '#f4efe4');

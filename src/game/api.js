@@ -47,7 +47,8 @@ export function createApi(ctx) {
       try {
         if (!ready()) return snapshot({ lang: ctx.settings?.lang || 'zh', started: false });
         return snapshot(ctx.state);
-      } catch {
+      } catch (err) {
+        console.error(err);
         return snapshot(null);
       }
     },
@@ -63,7 +64,8 @@ export function createApi(ctx) {
         ctx.state.screen = 'play';
         saveGame(ctx.state);
         return after(true);
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -71,7 +73,8 @@ export function createApi(ctx) {
       try {
         if (!ready()) return false;
         return saveGame(ctx.state);
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -84,7 +87,8 @@ export function createApi(ctx) {
         ctx.state.screen = 'play';
         ctx.state.paused = false;
         return after(true);
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -99,7 +103,8 @@ export function createApi(ctx) {
           touch: ctx.state?.touch || ctx.settings?.touch || 'auto',
         });
         return after(true);
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -107,7 +112,8 @@ export function createApi(ctx) {
       try {
         if (!playable()) return false;
         return after(teleport(ctx.state, num(x), num(y)));
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -115,7 +121,8 @@ export function createApi(ctx) {
       try {
         if (!playable()) return false;
         return after(go(ctx.state, location));
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -137,7 +144,8 @@ export function createApi(ctx) {
         }
         state.time = Math.max(0, Math.min(DAY_END - 1, state.time));
         return after(true);
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -149,7 +157,8 @@ export function createApi(ctx) {
         ctx.state.time += n;
         if (ctx.state.time >= DAY_END) doPassout(ctx.state);
         return after(true);
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -160,7 +169,8 @@ export function createApi(ctx) {
         if (v == null) return false;
         ctx.state.energy = Math.max(0, Math.min(ctx.state.energyMax, v));
         return after(true);
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -171,7 +181,8 @@ export function createApi(ctx) {
         if (v == null) return false;
         ctx.state.money = Math.max(0, Math.floor(v));
         return after(true);
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -179,7 +190,8 @@ export function createApi(ctx) {
       try {
         if (!playable()) return false;
         return after(equip(ctx.state, id));
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -187,7 +199,8 @@ export function createApi(ctx) {
       try {
         if (!playable()) return false;
         return after(useTool(ctx.state));
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -195,7 +208,8 @@ export function createApi(ctx) {
       try {
         if (!playable()) return false;
         return after(interact(ctx.state));
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -205,7 +219,8 @@ export function createApi(ctx) {
         const ok = sleep(ctx.state);
         saveGame(ctx.state);
         return after(ok);
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -213,7 +228,8 @@ export function createApi(ctx) {
       try {
         if (!playable()) return false;
         return after(collectShipping(ctx.state));
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -221,7 +237,8 @@ export function createApi(ctx) {
       try {
         if (!playable()) return false;
         return after(plant(ctx.state, cropId));
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -229,7 +246,8 @@ export function createApi(ctx) {
       try {
         if (!playable()) return false;
         return after(water(ctx.state));
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -237,7 +255,8 @@ export function createApi(ctx) {
       try {
         if (!playable()) return false;
         return after(harvest(ctx.state));
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -245,7 +264,8 @@ export function createApi(ctx) {
       try {
         if (!playable()) return false;
         return after(till(ctx.state));
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -253,7 +273,8 @@ export function createApi(ctx) {
       try {
         if (!playable()) return false;
         return after(give(ctx.state, npcId, itemId));
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -261,7 +282,8 @@ export function createApi(ctx) {
       try {
         if (!playable()) return false;
         return after(talk(ctx.state, npcId));
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -269,7 +291,8 @@ export function createApi(ctx) {
       try {
         if (!playable()) return false;
         return after(feed(ctx.state, animalId));
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -277,7 +300,8 @@ export function createApi(ctx) {
       try {
         if (!playable()) return false;
         return after(milk(ctx.state, animalId));
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -285,7 +309,8 @@ export function createApi(ctx) {
       try {
         if (!playable()) return false;
         return after(buy(ctx.state, itemId, qty));
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -295,7 +320,8 @@ export function createApi(ctx) {
         ctx.update(ctx.state, null, num(ms) == null ? 16 : num(ms));
         if (ctx.draw) ctx.draw();
         return after(true);
-      } catch {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -303,7 +329,8 @@ export function createApi(ctx) {
       try {
         if (!playable()) return null;
         return aimTile(ctx.state);
-      } catch {
+      } catch (err) {
+        console.error(err);
         return null;
       }
     },

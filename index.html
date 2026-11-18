@@ -9,26 +9,31 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="frame">
-    <canvas id="view" width="320" height="224" aria-label="Farm Days"></canvas>
+  <div id="play-col">
     <div id="hud" hidden>
       <div class="hud-top">
         <span id="hud-date"></span>
         <span id="hud-time"></span>
         <span id="hud-gold"></span>
         <span id="hud-loc"></span>
+        <span id="energy-label"></span>
+        <span class="energy" aria-hidden="true"><span id="energy-fill"></span></span>
+        <span id="hud-held"></span>
+        <span id="hud-can"></span>
         <span class="hud-actions">
           <button type="button" id="btn-lang" aria-label="Language">EN</button>
           <button type="button" id="btn-mute" aria-label="Sound">♪</button>
           <button type="button" id="btn-menu" aria-label="Menu">≡</button>
         </span>
       </div>
-      <div class="energy" aria-hidden="true"><div id="energy-fill"></div></div>
-      <div class="hud-sub"><span id="energy-label"></span><span id="hud-held"></span><span id="hud-can"></span></div>
     </div>
-    <div id="toast" hidden></div>
+    <div id="frame">
+      <canvas id="view" width="320" height="224" aria-label="Farm Days"></canvas>
+      <canvas id="labels" width="320" height="224" aria-hidden="true"></canvas>
+      <div id="toast" hidden></div>
+      <div id="panel" hidden></div>
+    </div>
     <div id="hotbar"></div>
-    <div id="panel" hidden></div>
   </div>
 
   <div id="touch" hidden>
@@ -54,6 +59,13 @@
       <h1 id="title-name">牧场日常</h1>
       <p id="title-sub">青禾村的小小一年</p>
       <button type="button" id="btn-new">新的一天</button>
+      <div id="title-confirm" hidden>
+        <p id="title-confirm-text"></p>
+        <div class="row-btns">
+          <button type="button" id="btn-new-yes">重新开始</button>
+          <button type="button" id="btn-new-no">留下它</button>
+        </div>
+      </div>
       <button type="button" id="btn-continue">继续</button>
       <button type="button" id="title-lang">English</button>
       <p id="title-hint"></p>

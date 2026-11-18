@@ -2,12 +2,14 @@ import { CROPS } from './crops.js';
 
 /** Sell prices for goods that are not crops. */
 export const GOODS = {
-  egg: { sell: 60 },
-  milk: { sell: 140 },
+  egg: { sell: 35 },
+  milk: { sell: 90 },
   forage_herb: { sell: 30 },
   forage_berry: { sell: 35 },
   forage_mushroom: { sell: 40 },
   forage_cone: { sell: 25 },
+  cocoa: { sell: 18 },
+  pumpkin_cake: { sell: 40 },
 };
 
 export const TOOLS = new Set(['hand', 'hoe', 'can']);
@@ -15,7 +17,11 @@ export const TOOLS = new Set(['hand', 'hoe', 'can']);
 export const UPGRADES = {
   upgrade_can: { price: 420 },
   upgrade_bag: { price: 360 },
+  upgrade_coop: { price: 1400 },
+  upgrade_hearth: { price: 900 },
 };
+
+export const COCOA_PRICE = 30;
 
 export const SPRINKLER_PRICE = 680;
 export const FEED_PRICE = 10;

@@ -4,11 +4,14 @@ import { update } from './game/sim.js';
 import { hasSave, loadGame, loadSettings, saveGame } from './game/save.js';
 import { createState } from './game/state.js';
 import { createInput } from './input/input.js';
-import { fitCanvas, render } from './render/render.js';
+import { fitCanvas, render, renderLabels } from './render/render.js';
 import { createUi } from './ui/ui.js';
 
 const canvas = document.getElementById('view');
+const labels = document.getElementById('labels');
 const gfx = canvas.getContext('2d', { alpha: false });
+const lgfx = labels.getContext('2d');
+let viewScale = 1;
 const settings = loadSettings();
 const audio = createAudio();
 audio.setMuted(settings.muted);
@@ -46,6 +49,9 @@ ctx.state = bootState();
 function drawWorld(state) {
   gfx.imageSmoothingEnabled = false;
   render(gfx, state);
+  const dpr = Number(labels.dataset.dpr) || 1;
+  lgfx.imageSmoothingEnabled = true;
+  renderLabels(lgfx, state, viewScale, dpr);
 }
 
 ctx.draw = () => {
@@ -78,6 +84,7 @@ ctx.onNew = () => {
   ctx.state.screen = 'play';
   saveGame(ctx.state);
   ui.sync();
+  layout();
 };
 
 ctx.onContinue = () => {
@@ -89,22 +96,42 @@ ctx.onContinue = () => {
   }
   ctx.state.screen = 'play';
   ctx.state.paused = false;
-  ctx.state.panel = null;
+  ctx.state.panel = ctx.state.seenHelp ? null : 'help';
   ctx.state.lang = ctx.state.lang || settings.lang;
   audio.setMuted(!!ctx.state.muted);
   audio.setMusic(!ctx.state.muted);
   ui.sync();
+  layout();
 };
 
 const api = createApi(ctx);
 window.__farm = api;
 
+let fitSlack = 0;
+
 function layout() {
   const playing = !!(ctx.state?.started && ctx.state.screen === 'play');
-  const touch = ui.touchOn() && playing;
-  const narrow = window.innerWidth < 820;
-  const reserve = touch ? (narrow ? 176 : 196) : 16;
-  fitCanvas(canvas, reserve);
+  const touchOn = ui.touchOn() && playing;
+  const hud = document.getElementById('hud');
+  const hotbar = document.getElementById('hotbar');
+  const touch = document.getElementById('touch');
+  let reserve = 24;
+  if (playing) {
+    reserve += hud && !hud.hidden ? hud.offsetHeight : 26;
+    reserve += hotbar && !hotbar.hidden ? hotbar.offsetHeight : 40;
+  }
+  if (touchOn) reserve += touch && !touch.hidden ? touch.offsetHeight : 150;
+  viewScale = fitCanvas(canvas, reserve + fitSlack, labels);
+  const hudTop = hud && playing && !hud.hidden ? hud.getBoundingClientRect().top : canvas.getBoundingClientRect().top;
+  const touchBottom = touchOn && touch && !touch.hidden ? touch.getBoundingClientRect().bottom : 0;
+  const overflow = Math.max(0, 2 - hudTop, touchBottom - window.innerHeight);
+  if (overflow > 1) {
+    fitSlack += overflow + 4;
+    viewScale = fitCanvas(canvas, reserve + fitSlack, labels);
+  } else if (hudTop > 80 && fitSlack > 0) {
+    fitSlack = Math.max(0, fitSlack - Math.min(fitSlack, hudTop - 64));
+    viewScale = fitCanvas(canvas, reserve + fitSlack, labels);
+  }
 }
 
 let last = performance.now();
@@ -124,9 +151,9 @@ function frame(now) {
     }
   }
   input.endFrame();
+  ui.sync();
   layout();
   ctx.draw();
-  ui.sync();
   requestAnimationFrame(frame);
 }
 
@@ -138,7 +165,7 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('pointerdown', () => audio.unlock(), { passive: true });
 window.addEventListener('keydown', () => audio.unlock());
 
-layout();
 ui.sync();
+layout();
 ctx.draw();
 requestAnimationFrame(frame);

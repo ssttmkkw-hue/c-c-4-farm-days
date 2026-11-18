@@ -1,5 +1,6 @@
 import { CROPS } from '../data/crops.js';
 import { npcDef } from '../data/dialogues.js';
+import { STR } from '../data/strings.js';
 import {
   SPRINKLER_CAP,
   forageForSeason,
@@ -13,9 +14,11 @@ import { getStock, shopOpen } from './shop.js';
 import {
   DAY_END,
   DAY_START,
+  lastSafePlantDay,
   nextDate,
   rollWeather,
 } from './calendar.js';
+import { saveGame } from './save.js';
 import {
   addItem,
   canFit,
@@ -79,8 +82,8 @@ export function aimTile(state) {
 
 function pickPlotTile(state) {
   const a = actionTiles(state);
-  if (plotAt(state, a.x, a.y)) return { x: a.x, y: a.y };
   if (plotAt(state, a.fx, a.fy)) return { x: a.fx, y: a.fy };
+  if (plotAt(state, a.x, a.y)) return { x: a.x, y: a.y };
   return { x: a.fx, y: a.fy };
 }
 
@@ -96,11 +99,22 @@ export function faceTile(state, x, y) {
   else state.player.dir = y > py ? 'down' : 'up';
 }
 
+function clearWilted(state, plot) {
+  if (!spendEnergy(state, COST.till.e)) return false;
+  plot.crop = null;
+  plot.stage = 0;
+  plot.wilted = false;
+  plot.dry = 0;
+  plot.watered = false;
+  plot.tilled = true;
+  addMinutes(state, COST.till.t);
+  playSfx(state, 'hoe');
+  showToast(state, 'toast_wilt_clear');
+  maybePassout(state);
+  return true;
+}
+
 export function till(state) {
-  if (state.season === 'winter') {
-    showToast(state, 'toast_frozen');
-    return false;
-  }
   const { x, y } = pickPlotTile(state);
   const plot = plotAt(state, x, y);
   if (!plot) {
@@ -114,19 +128,10 @@ export function till(state) {
     showToast(state, 'toast_growing');
     return false;
   }
-  if (plot.wilted) {
-    if (!spendEnergy(state, COST.till.e)) return false;
-    plot.crop = null;
-    plot.stage = 0;
-    plot.wilted = false;
-    plot.dry = 0;
-    plot.watered = false;
-    plot.tilled = true;
-    addMinutes(state, COST.till.t);
-    playSfx(state, 'hoe');
-    showToast(state, 'toast_wilt_clear');
-    maybePassout(state);
-    return true;
+  if (plot.wilted) return clearWilted(state, plot);
+  if (state.season === 'winter') {
+    showToast(state, 'toast_frozen');
+    return false;
   }
   if (plot.tilled) {
     showToast(state, 'toast_till');
@@ -210,7 +215,9 @@ export function plant(state, cropId) {
   plot.watered = false;
   addMinutes(state, COST.plant.t);
   playSfx(state, 'plant');
-  showToast(state, 'toast_plant', { name: id });
+  const last = lastSafePlantDay(def.days);
+  if (state.day > last) showToast(state, 'toast_late_plant', { name: id, day: last });
+  else showToast(state, 'toast_plant', { name: id });
   maybePassout(state);
   return true;
 }
@@ -337,6 +344,9 @@ export function useTool(state) {
     return feed(state, animal.id);
   }
   if (item.id === 'hand') {
+    const spot = pickPlotTile(state);
+    const under = plotAt(state, spot.x, spot.y);
+    if (under && under.wilted) return clearWilted(state, under);
     if (harvest(state, true)) return true;
     const a = actionTiles(state);
     if (tryForage(state, a.fx, a.fy) || tryForage(state, a.x, a.y)) return true;
@@ -499,10 +509,48 @@ function animalInteract(state, a) {
   return pet(state, a.id);
 }
 
+function bumpHeart(state, npcId, amount) {
+  const next = Math.round(((state.hearts[npcId] || 0) + amount) * 2) / 2;
+  state.hearts[npcId] = Math.min(5, Math.max(0, next));
+}
+
+function rewardItem(state, npcId) {
+  if (npcId === 'hua') {
+    const crop = Object.values(CROPS).find((c) => c.season === state.season);
+    return crop ? 'seed_' + crop.id : 'cocoa';
+  }
+  if (npcId === 'tao') return 'pumpkin_cake';
+  if (npcId === 'mei') return 'turnip';
+  return null;
+}
+
+function grantVisitReward(state, npcId) {
+  if ((state.hearts[npcId] || 0) < 4) return false;
+  if (!state.rewards || typeof state.rewards !== 'object') state.rewards = {};
+  if (state.rewards[npcId]) return false;
+  const id = rewardItem(state, npcId);
+  if (!id || !canFit(state, id, 1)) return false;
+  addItem(state, id, 1);
+  state.rewards[npcId] = true;
+  const key = npcId === 'hua' ? 'toast_reward_hua' : npcId === 'tao' ? 'toast_reward_tao' : 'toast_reward_mei';
+  showToast(state, key, { name: id });
+  return true;
+}
+
+function dialogueLine(key) {
+  const row = STR[key];
+  return [{ zh: row.zh, en: row.en }];
+}
+
 export function talk(state, npcId) {
   const def = npcDef(npcId);
   const npc = state.npcs.find((n) => n.id === npcId);
   if (!def || !npc) return false;
+  if (!state.talked || typeof state.talked !== 'object') state.talked = {};
+  if (!state.talked[npcId]) {
+    state.talked[npcId] = true;
+    bumpHeart(state, npcId, 0.5);
+  }
   const hearts = state.hearts[npcId] || 0;
   const tier = hearts >= 4 ? 'high' : hearts >= 2 ? 'mid' : 'low';
   const variants = def.lines[tier];
@@ -511,6 +559,7 @@ export function talk(state, npcId) {
   state.panel = 'dialogue';
   addMinutes(state, 6);
   playSfx(state, 'talk');
+  grantVisitReward(state, npcId);
   return true;
 }
 
@@ -535,6 +584,7 @@ export function give(state, npcId, itemId) {
     showToast(state, 'toast_gift_none');
     return false;
   }
+  if (!state.gifted || typeof state.gifted !== 'object') state.gifted = {};
   if (state.gifted[npcId]) {
     showToast(state, 'toast_gift_already');
     return false;
@@ -547,32 +597,19 @@ export function give(state, npcId, itemId) {
     playSfx(state, 'talk');
     showToast(state, 'toast_gift_disliked');
     state.panel = 'dialogue';
-    state.dialogue = {
-      npcId,
-      pages: [{ zh: '心意我领了，这个还是你留着吧。', en: 'I appreciate the thought. Please keep this one.' }],
-      page: 0,
-    };
+    state.dialogue = { npcId, pages: dialogueLine('dlg_gift_keep'), page: 0 };
     return false;
   }
   if (!removeItem(state, id, 1)) return false;
   state.gifted[npcId] = true;
-  if (id === npc.liked) {
-    state.hearts[npcId] = Math.min(5, (state.hearts[npcId] || 0) + 1);
-    showToast(state, 'toast_gift_liked');
-  } else {
-    showToast(state, 'toast_gift_neutral');
-  }
+  const liked = id === npc.liked;
+  if (liked) bumpHeart(state, npcId, 1);
   playSfx(state, 'gift');
   addMinutes(state, 8);
-  const liked = id === npc.liked;
+  const rewarded = grantVisitReward(state, npcId);
+  if (!rewarded) showToast(state, liked ? 'toast_gift_liked' : 'toast_gift_neutral');
   state.panel = 'dialogue';
-  state.dialogue = {
-    npcId,
-    pages: liked
-      ? [{ zh: '这个我真喜欢。心口都暖了一下。', en: 'I really like this. It warms me.' }]
-      : [{ zh: '谢谢你，我收下啦。', en: 'Thank you. I\'ll keep it.' }],
-    page: 0,
-  };
+  state.dialogue = { npcId, pages: dialogueLine(liked ? 'dlg_gift_liked' : 'dlg_gift_thanks'), page: 0 };
   return true;
 }
 
@@ -592,6 +629,7 @@ export function buy(state, itemId, qty) {
     showToast(state, 'toast_no_money');
     return false;
   }
+  if (!state.upgrades) state.upgrades = {};
   if (itemId === 'upgrade_can') {
     state.upgrades.can = true;
     state.canMax = 40;
@@ -599,6 +637,7 @@ export function buy(state, itemId, qty) {
     state.money -= offer.price;
     playSfx(state, 'coin');
     showToast(state, 'toast_bought_can');
+    saveGame(state);
     return true;
   }
   if (itemId === 'upgrade_bag') {
@@ -607,6 +646,23 @@ export function buy(state, itemId, qty) {
     state.money -= offer.price;
     playSfx(state, 'coin');
     showToast(state, 'toast_bought_bag');
+    saveGame(state);
+    return true;
+  }
+  if (itemId === 'upgrade_coop') {
+    state.upgrades.coop = true;
+    state.money -= offer.price;
+    playSfx(state, 'coin');
+    showToast(state, 'toast_bought_coop');
+    saveGame(state);
+    return true;
+  }
+  if (itemId === 'upgrade_hearth') {
+    state.upgrades.hearth = true;
+    state.money -= offer.price;
+    playSfx(state, 'coin');
+    showToast(state, 'toast_bought_hearth');
+    saveGame(state);
     return true;
   }
   if (itemId === 'sprinkler') {
@@ -737,6 +793,7 @@ export function endDay(state, reason) {
   state.energy = state.energyMax || ENERGY_MAX;
   state.time = DAY_START;
   state.gifted = {};
+  state.talked = {};
   state.forage = {};
   state.lateWarned = false;
   state.passPenalty = 0;
@@ -760,6 +817,7 @@ export function sleep(state) {
   state.panel = null;
   state.dialogue = null;
   state.paused = false;
+  saveGame(state);
   return true;
 }
 
@@ -776,6 +834,7 @@ export function doPassout(state) {
   state.dialogue = null;
   state.paused = false;
   state._passing = false;
+  saveGame(state);
 }
 
 export function go(state, location, spawn) {

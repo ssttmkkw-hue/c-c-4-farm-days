@@ -14,11 +14,9 @@ import { DAY_END } from './calendar.js';
 import { showToast } from './state.js';
 import { findLink, getMap } from '../world/maps.js';
 import { bodyBlocked } from '../world/tiles.js';
+import { PEN } from './pens.js';
 
-const PEN = {
-  chicken: { x0: 4.05, y0: 8.05, x1: 7.75, y1: 9.72 },
-  cow: { x0: 13.2, y0: 9.25, x1: 17.7, y1: 11.15 },
-};
+const MENU_LOCK = new Set(['sleep', 'passout', 'help', 'dialogue']);
 
 function emptyInput() {
   return { x: 0, y: 0, pressed: {}, holdUse: false, wheel: 0 };
@@ -57,13 +55,15 @@ function handleInput(state, input, dt) {
     closePanel(state);
     return;
   }
-  if (pressed.inv) {
-    togglePanel(state, 'inventory');
-    return;
-  }
-  if (pressed.cal) {
-    togglePanel(state, 'calendar');
-    return;
+  if (!MENU_LOCK.has(state.panel)) {
+    if (pressed.inv) {
+      togglePanel(state, 'inventory');
+      return;
+    }
+    if (pressed.cal) {
+      togglePanel(state, 'calendar');
+      return;
+    }
   }
   if (pressed.slots) {
     for (let i = 0; i < 8; i++) if (pressed.slots[i]) state.hotbar = i;
@@ -93,7 +93,7 @@ function handleInput(state, input, dt) {
   if (pressed.use) {
     useTool(state);
     state.useCd = 0.22;
-  } else if (input.holdUse) {
+  } else if (input.holdUse && holdRepeats(state)) {
     state.useCd = (state.useCd || 0) - dt;
     if (state.useCd <= 0) {
       useTool(state);
@@ -101,6 +101,11 @@ function handleInput(state, input, dt) {
     }
   }
   if (pressed.interact) interact(state);
+}
+
+function holdRepeats(state) {
+  const id = held(state)?.id;
+  return id === 'hoe' || id === 'can';
 }
 
 function movePlayer(state, input, dt) {

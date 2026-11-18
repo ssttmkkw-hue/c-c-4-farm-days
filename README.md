@@ -24,13 +24,13 @@ Open `http://localhost:8000`.
 
 ## 第一天怎么过 / A first day
 
-1. 在田里锄地、种下萝卜、浇水。站在土块上用工具，会作用在脚下；站在田边，会作用在面前那一格。
+1. 在田里锄地、种下萝卜、浇水。工具打在面前那一格；面前不是田时，才打在脚下。黄框标出的就是这一格。
 2. 给两只鸡和牛喂饲料。喂过之后，鸡明早下蛋，牛可以挤奶。
 3. 把鸡蛋、牛奶放进运送箱。金币明早到账。
 4. 沿小路去青禾村，跟邻居说话，到花婶店里买种子或洒水器。
 5. 回家上床睡觉。浇过水的作物长大一阶段。连续两天不浇水才会枯，枯了可以用锄头清掉。
 
-1. Till, plant a turnip, and water it. On a soil tile the tool hits the ground under you. Beside the field, it hits the tile in front.
+1. Till, plant a turnip, and water it. The tool hits the tile you are facing. If that tile is not soil, it hits the ground under you. The yellow box is that tile.
 2. Feed both chickens and the cow. A fed hen lays in the morning. A fed cow can be milked.
 3. Put the egg and milk in the shipping bin. Gold arrives at dawn.
 4. Take the path to the village, talk to someone, and buy seeds or a sprinkler at Aunt Hua's.
@@ -47,7 +47,7 @@ You start with 200 G, 6 turnip seed packets, 9 feed, 1 egg, and 1 milk. Energy i
 | 操作 | 按键 |
 | --- | --- |
 | 移动 / Move | WASD 或方向键 / or arrow keys |
-| 使用工具 / Use tool | J、Z、K，按住可连续使用 / hold to repeat |
+| 使用工具 / Use tool | J、Z、K。按住只重复锄头和水壶 / hold repeats the hoe and the can only |
 | 互动 / Interact | E、空格、Enter |
 | 快捷栏 / Hotbar | 1–8，鼠标滚轮 / mouse wheel |
 | 背包 / Bag | I 或 Tab |
@@ -81,19 +81,19 @@ The default language is Chinese, and the choice is remembered.
 
 A day runs from 6:00 to midnight. About four game minutes pass each real second, and work pushes the clock a little more. At 22:00 you get a nudge to head home. At midnight you wake in bed and lose a little gold (10% of what you carry, at most 80). Running out of energy ends the day the same gentle way.
 
-一年四季各 28 天。季节会换草地和树的颜色，店里的种子也跟着换。雨天早晨作物算浇过。前三个春天是晴天，方便熟悉。冬天不能在户外播种，动物、村子和小径上的捡拾还在。
+一年四季各 28 天。季节会换草地和树的颜色，店里的种子也跟着换。雨天早晨作物算浇过。前三个春天是晴天，方便熟悉。冬天不能新种，枯掉的秧仍可以用锄头或手清掉。动物、村子、小径上的松果，还有花婶的热可可，都还在。日历会标出每种作物的最晚播种日。种得太晚会有一句提醒，地仍然种得下去。
 
-Each season is 28 days. The grass, trees, and seed shelf change with it. On rainy mornings, crops count as watered. The first three days of spring are sunny. Winter has no outdoor planting. Animals, the village, and forage on the path stay.
+Each season is 28 days. The grass, trees, and seed shelf change with it. On rainy mornings, crops count as watered. The first three days of spring are sunny. Winter takes no new planting, but the hoe or an empty hand can still clear a wilted stalk. Animals, the village, pine cones on the path, and Aunt Hua's hot cocoa stay. The calendar marks the last safe planting day for each crop. Planting later shows a warning, and the seed still goes in the ground.
 
 | 季节 | 作物 | 生长 | 种子 / 售价 |
 | --- | --- | --- | --- |
-| 春 Spring | 萝卜 Turnip | 2 天 | 20 / 50 |
-| 春 Spring | 卷心菜 Cabbage | 4 天 | 40 / 110 |
-| 夏 Summer | 番茄 Tomato | 4 天，之后每 2 天再结 / then every 2 days | 50 / 70 |
-| 夏 Summer | 玉米 Corn | 5 天 | 70 / 160 |
-| 秋 Autumn | 南瓜 Pumpkin | 5 天 | 90 / 200 |
-| 秋 Autumn | 地瓜 Sweet potato | 3 天 | 40 / 100 |
-| 冬 Winter | 不播种，小径可捡松果 / no planting; pine cones on the path |  |  |
+| 春 Spring | 萝卜 Turnip | 2 天 | 20 / 70 |
+| 春 Spring | 卷心菜 Cabbage | 4 天 | 40 / 140 |
+| 夏 Summer | 番茄 Tomato | 4 天，之后每 2 天再结 / then every 2 days | 50 / 80 |
+| 夏 Summer | 玉米 Corn | 5 天 | 70 / 190 |
+| 秋 Autumn | 南瓜 Pumpkin | 5 天 | 90 / 230 |
+| 秋 Autumn | 地瓜 Sweet potato | 3 天 | 40 / 120 |
+| 冬 Winter | 不播种。松果 25 金，热可可 30 买 / 18 卖。 no planting. Pine cones 25 G, hot cocoa 30 to buy / 18 to sell |  |  |
 
 小径上还能捡到：春野草、夏野莓、秋蘑菇。
 
@@ -109,15 +109,15 @@ When the season turns, crops that are not ready wilt. Ready ones can still be ha
 
 Cluck and Peck live in the coop. Moo lives in the barn. Feed each of them once a day. Fed hens have an egg the next morning. A fed cow can be milked. Skip a meal and they simply skip produce. They do not die. Petting once a day lifts their mood and does not change produce.
 
-蛋卖 60 金，奶卖 140 金。饲料在花婶店里，10 金一份。
+蛋卖 35 金，奶卖 90 金。饲料在花婶店里，10 金一份。只顾动物的一天是两枚蛋加一桶奶，扣掉三份饲料，净得 130 金。田是八格宽。一整行萝卜两天一熟，平均每天收四颗，扣掉种子净得 200 金，大约是动物那天的 1.5 倍。体力还够再种几行。多出来的金币可以换鸡舍新顶（1400）或家里的窗台花箱（900），这两样不增加收成。
 
-Eggs sell for 60 G, milk for 140 G. Aunt Hua sells feed for 10 G.
+Eggs sell for 35 G, milk for 90 G. Aunt Hua sells feed for 10 G. An animal-only day is two eggs and one pail of milk, minus three feed, which nets 130 G. The field is eight plots wide. A full row of turnips finishes every other day, so four sales a day, and after seeds that nets 200 G, about 1.5× the animal day. Energy still covers more rows. Spare gold can buy a new coop roof (1400) or a window box at home (900). Neither one adds produce.
 
 ## 村民 / Villagers
 
-好感 0–5 心。每人每天收一份礼物。喜欢的礼物加一颗心，别的食物会收下但不加心，讨厌的会礼貌地请你留着。
+好感 0–5 心，可以是半颗。每天第一次说话加半颗心。每人每天仍只收一份礼物。喜欢的礼物加一颗心，别的食物会收下但不加心，讨厌的会礼貌地请你留着。到了 4 心，花婶会塞来一包当季种子（冬天是热可可），小梅会塞一根萝卜，桃奶奶会给一块南瓜饼。每样只给一次。
 
-Friendship is 0–5 hearts. Each person accepts one gift a day. A liked gift adds a heart. Other food is accepted with no heart. A disliked gift is politely refused.
+Friendship is 0–5 hearts, in half-heart steps. The first talk each day adds half a heart. Each person still accepts only one gift a day. A liked gift adds a heart. Other food is accepted with no extra heart. A disliked gift is politely refused. At 4 hearts, Aunt Hua gives a packet of this season's seeds (hot cocoa in winter), Mei gives a turnip, and Granny Tao gives a pumpkin cake. Each reward happens once.
 
 | 人 | 在哪 | 喜欢 | 不收 |
 | --- | --- | --- | --- |
@@ -127,19 +127,19 @@ Friendship is 0–5 hearts. Each person accepts one gift a day. A liked gift add
 | 魏伯 Uncle Wei | 告示板附近 / near the bulletin | 牛奶 Milk | 番茄 Tomato |
 | 桃奶奶 Granny Tao | 广场边 / by the plaza | 南瓜 Pumpkin | 玉米 Corn |
 
-对着柜台买东西。店在 6:00 到 20:00 开门。
+对着柜台买东西。店在 6:00 到 20:00 开门。种子和饲料可以一次买 ×1、×5 或 ×10。
 
-Face the counter to buy. The shop is open from 6:00 to 20:00.
+Face the counter to buy. The shop is open from 6:00 to 20:00. Seeds and feed can be bought ×1, ×5, or ×10.
 
-店里还有：洒水器 680 金（每天早晨浇周围 3×3，最多 8 个，锄头可以收回）、大水壶 420 金（容量 40）、背包 360 金（16 格变 24 格）。
+店里还有：洒水器 680 金（每天早晨浇周围 3×3，最多 8 个，锄头可以收回）、大水壶 420 金（容量 40）、背包 360 金（16 格变 24 格）、鸡舍新顶 1400 金、窗台花箱 900 金。冬天另有热可可，30 金。
 
-Also on the shelf: a sprinkler for 680 G (waters a 3×3 each morning, up to 8, the hoe picks it back up), a bigger can for 420 G (40 charges), and a backpack for 360 G (16 slots become 24).
+Also on the shelf: a sprinkler for 680 G (waters a 3×3 each morning, up to 8, the hoe picks it back up), a bigger can for 420 G (40 charges), a backpack for 360 G (16 slots become 24), a coop roof for 1400 G, and a window box for 900 G. In winter there is also hot cocoa for 30 G.
 
 ## 存档 / Save
 
-睡觉、每隔约 20 秒、以及关闭页面时会写入浏览器的 `localStorage`。标题画面可以继续。刷新不会丢掉农场。语言、静音和触控按钮的选择单独记住。
+睡觉、累倒、买下升级、每隔约 20 秒，以及关闭页面时，会写入浏览器的 `localStorage`。存档版本是 2，仍能读版本 1，缺的字段会补上，动物会被拉回围栏。标题画面可以继续。已经有存档时，新的一天会先问一句，避免盖掉进度。语言、静音和触控按钮的选择单独记住。
 
-The game writes to `localStorage` when you sleep, about every 20 seconds, and when the page closes. Continue is on the title screen. A refresh keeps the farm. Language, mute, and the touch-button choice are stored too.
+The game writes to `localStorage` when you sleep, pass out, buy an upgrade, about every 20 seconds, and when the page closes. Saves are version 2 and still read version 1. Missing fields are filled in, and animals are pulled back inside their pens. Continue is on the title screen. If a save already exists, New Game asks before it replaces that farm. Language, mute, and the touch-button choice are stored separately.
 
 ## 目录 / Layout
 
@@ -157,10 +157,16 @@ src/input/       键盘、鼠标、触控 / keyboard, mouse, touch
 src/audio/       短音效和很轻的循环 / short SFX and a quiet loop
 ```
 
-画面是 320×224 的内部分辨率，按整数倍放大，关闭图像平滑。调色板大约二十多种颜色。没有外部图片，也没有需要密钥的服务。
+画面是 320×224 的内部分辨率。宽屏按整数倍放大，窄屏和触控会用小数倍把农场拉到接近屏幕宽度，日期栏和工具栏放在画面外面。名字写在单独的一层上，按屏幕分辨率绘制，并夹在画面里面。调色板大约二十多种颜色。没有外部图片，也没有需要密钥的服务。
 
-The view is 320×224 internally, scaled by whole pixels, with smoothing off. The palette is a little over twenty colors. There are no external images and no services that need a key.
+The view is 320×224 internally. Wide screens scale by whole pixels. Narrow and touch screens may use a fractional scale so the farm fills the width, with the date line and the hotbar outside the picture. Nameplates are drawn on a separate layer at screen resolution and clamped inside the view. The palette is a little over twenty colors. There are no external images and no services that need a key.
 
-自动化测试可以在页面加载后使用 `window.__farm`（例如 `newGame()`、`getState()`、`till()`、`sleep()`、`buy()`）。
+## 测试 / Tests
 
-Automated tests can call `window.__farm` after load (`newGame()`, `getState()`, `till()`, `sleep()`, `buy()`, and the other small hooks).
+```bash
+node tests/unit.test.mjs
+```
+
+覆盖瞄准（站在田 A、面向田 B、锄地只翻 B）、存档迁移、售价、好感、枯萎两天，以及面板按键。`node --check` 可以检查语法。页面里的 `window.__farm` 仍给自动化用（`newGame`、`getState`、`till`、`sleep`、`buy` 等）。钩子吞掉异常时会 `console.error`，不会把错误抛到页面上。
+
+That file covers aiming (stand on plot A, face plot B, till only B), save migration, sell prices, friendship, the two-dry-day wilt, and panel keys. `node --check` covers syntax. `window.__farm` in the page is still there for automation (`newGame`, `getState`, `till`, `sleep`, `buy`, and the other hooks). Swallowed hook errors are logged with `console.error` and are not thrown into the page.

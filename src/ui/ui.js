@@ -10,7 +10,7 @@ import {
   sleep,
   unship,
 } from '../game/actions.js';
-import { formatClock, phaseOf, weekdayIndex } from '../game/calendar.js';
+import { formatClock, lastSafePlantDay, phaseOf, weekdayIndex } from '../game/calendar.js';
 import { held, selectSlot, shippingValue } from '../game/inventory.js';
 import { getStock } from '../game/shop.js';
 import { saveGame, writeSettings } from '../game/save.js';
@@ -58,7 +58,7 @@ export function createUi(ctx) {
     const mode = ctx.state?.touch || ctx.settings.touch || 'auto';
     if (mode === 'on') return true;
     if (mode === 'off') return false;
-    return window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 820;
+    return window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 820 || window.innerHeight < 520;
   }
 
   panel.addEventListener('click', (e) => {
@@ -76,7 +76,7 @@ export function createUi(ctx) {
     else if (act === 'slot') selectSlot(state, Number(b.dataset.slot));
     else if (act === 'ship') shipSlot(state, Number(b.dataset.slot));
     else if (act === 'unship') unship(state, Number(b.dataset.index));
-    else if (act === 'buy') buy(state, b.dataset.id, 1);
+    else if (act === 'buy') buy(state, b.dataset.id, Number(b.dataset.qty) || 1);
     else if (act === 'give') {
       const item = held(state);
       if (state.dialogue && item) give(state, state.dialogue.npcId, item.id);
@@ -149,8 +149,26 @@ export function createUi(ctx) {
     });
   }
 
-  document.getElementById('btn-new').addEventListener('click', () => ctx.onNew());
-  document.getElementById('btn-continue').addEventListener('click', () => ctx.onContinue());
+  document.getElementById('btn-new').addEventListener('click', () => {
+    ctx.audio?.unlock();
+    if (ctx.hasContinue()) {
+      document.getElementById('title-confirm').hidden = false;
+      return;
+    }
+    ctx.onNew();
+  });
+  document.getElementById('btn-new-yes').addEventListener('click', () => {
+    ctx.audio?.unlock();
+    document.getElementById('title-confirm').hidden = true;
+    ctx.onNew();
+  });
+  document.getElementById('btn-new-no').addEventListener('click', () => {
+    document.getElementById('title-confirm').hidden = true;
+  });
+  document.getElementById('btn-continue').addEventListener('click', () => {
+    document.getElementById('title-confirm').hidden = true;
+    ctx.onContinue();
+  });
 
   function syncHud(state) {
     const L = lang();
@@ -182,16 +200,24 @@ export function createUi(ctx) {
       toast.hidden = true;
       return;
     }
-    const season = t(L, 'season_' + state.season + '_long');
-    document.getElementById('hud-date').textContent = season + ' · ' + t(L, 'day_label', { day: state.day }) + ' ' + t(L, 'wd_' + weekdayIndex(state.day));
-    document.getElementById('hud-time').textContent = formatClock(state.time) + ' ' + t(L, 'phase_' + phaseOf(state.time));
-    document.getElementById('hud-gold').textContent = state.money + ' ' + t(L, 'gold');
+    const narrow = window.innerWidth < 820 || window.innerHeight < 520;
+    const season = narrow ? t(L, 'season_' + state.season) : t(L, 'season_' + state.season + '_long');
+    const date = narrow
+      ? season + state.day
+      : season + ' · ' + t(L, 'day_label', { day: state.day }) + ' ' + t(L, 'wd_' + weekdayIndex(state.day));
+    document.getElementById('hud-date').textContent = date;
+    document.getElementById('hud-time').textContent = narrow
+      ? formatClock(state.time)
+      : formatClock(state.time) + ' ' + t(L, 'phase_' + phaseOf(state.time));
+    document.getElementById('hud-gold').textContent = state.money + (narrow ? '' : ' ') + t(L, 'gold');
     document.getElementById('hud-loc').textContent = t(L, 'loc_' + state.location);
-    const pct = Math.max(0, Math.min(100, (state.energy / state.energyMax) * 100));
+    const pct = Math.max(0, Math.min(100, (state.energy / (state.energyMax || 1)) * 100));
     const fill = document.getElementById('energy-fill');
     fill.style.width = pct + '%';
     fill.style.background = pct < 25 ? '#c4503a' : pct < 50 ? '#e6c15a' : '#5e9a3c';
-    document.getElementById('energy-label').textContent = t(L, 'energy') + ' ' + Math.ceil(state.energy);
+    document.getElementById('energy-label').textContent = narrow
+      ? String(Math.ceil(state.energy))
+      : t(L, 'energy') + ' ' + Math.ceil(state.energy);
     const item = held(state);
     document.getElementById('hud-held').textContent = item ? itemName(L, item.id) : '';
     document.getElementById('hud-can').textContent = t(L, 'can_water', { n: state.canWater, max: state.canMax });
@@ -213,6 +239,9 @@ export function createUi(ctx) {
     document.getElementById('title-hint').textContent = L === 'zh'
       ? 'WASD 移动 · J 工具 · E 互动 · 1–8 工具栏'
       : 'WASD move · J tool · E interact · 1–8 hotbar';
+    document.getElementById('title-confirm-text').textContent = t(L, 'new_confirm');
+    document.getElementById('btn-new-yes').textContent = t(L, 'new_yes');
+    document.getElementById('btn-new-no').textContent = t(L, 'new_no');
   }
 
   document.getElementById('title-lang').addEventListener('click', () => setLang(lang() === 'zh' ? 'en' : 'zh'));
@@ -279,9 +308,7 @@ export function createUi(ctx) {
       const def = npcDef(d.npcId);
       const name = npc ? (L === 'en' ? npc.en : npc.zh) : '';
       const page = d.pages[d.page] || { zh: '', en: '' };
-      const hearts = state.hearts[d.npcId] || 0;
-      let heart = '';
-      for (let i = 0; i < 5; i++) heart += i < hearts ? '♥' : '♡';
+      const heart = heartString(state.hearts[d.npcId] || 0);
       const item = held(state);
       const giveBtn = item && isGiftable(item.id)
         ? '<button type="button" data-act="give">' + esc(t(L, 'give_btn', { name: itemName(L, item.id) })) + '</button>'
@@ -310,13 +337,21 @@ export function createUi(ctx) {
     } else if (state.panel === 'shop') {
       const stock = getStock(state);
       const rows = stock.map((offer) => {
-        const afford = state.money >= offer.price;
-        const descKey = offer.id === 'upgrade_can' ? 'upgrade_can_desc' : offer.id === 'upgrade_bag' ? 'upgrade_bag_desc' : offer.id === 'sprinkler' ? 'sprinkler_desc' : '';
-        return '<div class="shop-row"><img alt="" src="' + iconURL(offer.id.startsWith('upgrade') ? (offer.id === 'upgrade_can' ? 'can' : 'feed') : offer.id) + '">'
+        const descKey = offer.id === 'upgrade_can' ? 'upgrade_can_desc'
+          : offer.id === 'upgrade_bag' ? 'upgrade_bag_desc'
+            : offer.id === 'upgrade_coop' ? 'upgrade_coop_desc'
+              : offer.id === 'upgrade_hearth' ? 'upgrade_hearth_desc'
+                : offer.id === 'sprinkler' ? 'sprinkler_desc'
+                  : offer.id === 'cocoa' ? 'cocoa_desc' : '';
+        const icon = offer.id === 'upgrade_can' ? 'can'
+          : offer.id === 'upgrade_bag' ? 'feed'
+            : offer.id === 'upgrade_coop' ? 'egg'
+              : offer.id === 'upgrade_hearth' ? 'forage_herb' : offer.id;
+        return '<div class="shop-row"><img alt="" src="' + iconURL(icon) + '">'
           + '<div><strong>' + esc(itemName(L, offer.id)) + '</strong>'
           + (descKey ? '<small>' + esc(t(L, descKey)) + '</small>' : '')
-          + '</div><button type="button" data-act="buy" data-id="' + esc(offer.id) + '"' + (afford ? '' : ' disabled') + '>'
-          + esc(t(L, 'price', { gold: offer.price })) + '</button></div>';
+          + '<small>' + esc(t(L, 'price', { gold: offer.price })) + '</small>'
+          + '</div>' + qtyButtons(offer, state.money) + '</div>';
       }).join('');
       html = card(t(L, 'shop_title'), [
         '<p>' + esc(t(L, 'season_' + state.season + '_long')) + ' · ' + state.money + ' ' + esc(t(L, 'gold')) + '</p>',
@@ -324,18 +359,20 @@ export function createUi(ctx) {
         '<button type="button" data-act="close">' + esc(t(L, 'close')) + '</button>',
       ]);
     } else if (state.panel === 'calendar') {
+      const crops = CROP_LIST.filter((c) => c.season === state.season);
+      const lastDays = new Set(crops.map((c) => lastSafePlantDay(c.days)));
       const cells = [];
       for (let d = 1; d <= 28; d++) {
-        const cls = d === state.day ? 'day today' : 'day';
+        const cls = ['day', d === state.day ? 'today' : '', lastDays.has(d) ? 'lastday' : ''].filter(Boolean).join(' ');
         cells.push('<span class="' + cls + '">' + d + '</span>');
       }
-      const crops = CROP_LIST.filter((c) => c.season === state.season);
       const cropLine = crops.length
-        ? crops.map((c) => esc(itemName(L, c.id)) + ' · ' + c.days).join('<br>')
+        ? crops.map((c) => esc(itemName(L, c.id)) + ' · ' + c.days + ' · ' + esc(t(L, 'cal_last', { day: lastSafePlantDay(c.days) }))).join('<br>')
         : esc(t(L, 'cal_none'));
       html = card(t(L, 'cal_title'), [
         '<p>' + esc(t(L, 'year_label', { year: state.year })) + ' · ' + esc(t(L, 'season_' + state.season + '_long')) + '</p>',
         '<div class="cal">' + cells.join('') + '</div>',
+        crops.length ? '<p class="hint">' + esc(t(L, 'cal_mark')) + '</p>' : '',
         '<h3>' + esc(t(L, 'cal_crops')) + '</h3>',
         '<p>' + cropLine + '</p>',
         '<button type="button" data-act="close">' + esc(t(L, 'close')) + '</button>',
@@ -361,6 +398,24 @@ export function createUi(ctx) {
       ]);
     }
     panel.innerHTML = html;
+  }
+
+  function heartString(n) {
+    const x = Math.max(0, Math.min(5, Number(n) || 0));
+    const full = Math.floor(x + 1e-6);
+    const half = full < 5 && x + 1e-6 >= full + 0.5;
+    const empty = 5 - full - (half ? 1 : 0);
+    return '♥'.repeat(full) + (half ? '½' : '') + '♡'.repeat(Math.max(0, empty));
+  }
+
+  function qtyButtons(offer, money) {
+    const steps = offer.upgrade ? [1] : [1, 5, 10];
+    return '<div class="qty">' + steps.map((q) => {
+      const afford = money >= offer.price * q;
+      const label = offer.upgrade ? t(lang(), 'buy') : '×' + q;
+      return '<button type="button" data-act="buy" data-id="' + esc(offer.id) + '" data-qty="' + q + '"'
+        + (afford ? '' : ' disabled') + '>' + esc(label) + '</button>';
+    }).join('') + '</div>';
   }
 
   function modeBtn(L, mode, current) {

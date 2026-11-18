@@ -37,7 +37,7 @@ export function createState(lang = 'zh', muted = false) {
   });
 
   return {
-    v: 1,
+    v: 2,
     started: true,
     screen: 'play',
     lang,
@@ -60,7 +60,7 @@ export function createState(lang = 'zh', muted = false) {
     hotbar: 1,
     canWater: 20,
     canMax: 20,
-    upgrades: { can: false, backpack: false },
+    upgrades: { can: false, backpack: false, coop: false, hearth: false },
     sprinklers: [],
     plots: emptyPlots(),
     shipping: [],
@@ -90,6 +90,8 @@ export function createState(lang = 'zh', muted = false) {
     })),
     hearts: { hua: 0, mei: 0, lin: 0, wei: 0, tao: 0 },
     gifted: {},
+    talked: {},
+    rewards: {},
     forage: {},
     dialogue: null,
     noticeKey: null,

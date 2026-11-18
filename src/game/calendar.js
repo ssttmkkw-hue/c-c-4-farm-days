@@ -24,6 +24,12 @@ export function weekdayIndex(day) {
   return (day - 1) % 7;
 }
 
+/** Last day a crop can be planted and still mature before the season turns. */
+export function lastSafePlantDay(growthDays) {
+  const days = Math.max(1, Number(growthDays) || 1);
+  return DAYS_PER_SEASON - days + 1;
+}
+
 export function nextDate(year, season, day) {
   let d = day + 1;
   let s = season;
