@@ -55,9 +55,9 @@ You start with 200 G, 6 turnip seed packets, 9 feed, 1 egg, and 1 milk. Energy i
 | 送礼 / Give the held item | 对话中按 G / G during dialogue |
 | 关闭面板，或打开设置 / Close a panel, or open settings | Esc |
 
-互动包括：说话、摸动物、捡蛋、挤奶、打开运送箱和背包、在井边装水、柜台买东西、看告示板、面对床睡觉。
+互动包括：说话、摸动物、捡蛋、挤奶、打开运送箱、背包和家里的箱子、在井边装水、柜台买东西、看告示板、面对床睡觉。箱子分两列，点一格就把整叠搬过去，相同的东西会叠在一起。
 
-Interact talks, pets, picks up eggs, milks, opens the bin and the bag, fills the can, shops at the counter, reads the board, and sleeps when you face the bed.
+Interact talks, pets, picks up eggs, milks, opens the bin, the bag, and the chest, fills the can, shops at the counter, reads the board, and sleeps when you face the bed. The chest shows the bag and the chest side by side. Tap a slot to move the whole stack. Matching items merge.
 
 ### 鼠标 / Mouse
 
@@ -67,9 +67,9 @@ Left click uses the tool on an adjacent tile. Right click interacts. The wheel c
 
 ### 触控 / Touch
 
-窄屏或触控设备会显示方向键、A（工具）、B（互动）、背包、日历、睡觉和菜单。竖屏时它们在画面下方，横屏时方向键在左、A/B 在右。睡觉键在家里会打开确认。画面顶部的 **EN / 中** 切换语言，♪ 开关声音。设置里可以强制显示或隐藏触控按钮。
+窄屏或触控设备会显示方向键、A（工具）、B（互动）、背包、日历、睡觉和菜单。竖屏时方向键贴在屏幕底边，横屏时方向键在左、A/B 在右。箱子打开时，A 或使用键也会搬走快捷栏里的那一叠。睡觉键在家里会打开确认。画面顶部的 **EN / 中** 切换语言，♪ 开关声音。设置里可以强制显示或隐藏触控按钮。
 
-On a narrow screen or a touch device, a pad appears: A uses the tool, B interacts, plus bag, calendar, sleep, and menu. In portrait the pad sits under the picture. In landscape the pad is on the left and A/B are on the right. The sleep button opens the confirm dialog while you are home. **EN / 中** on the top bar switches language. ♪ mutes. Settings can force the touch buttons on or off.
+On a narrow screen or a touch device, a pad appears: A uses the tool, B interacts, plus bag, calendar, sleep, and menu. In portrait the pad sits on the bottom edge. In landscape the pad is on the left and A/B are on the right. With the chest open, A or Use also moves the hotbar stack. The sleep button opens the confirm dialog while you are home. **EN / 中** on the top bar switches language. ♪ mutes. Settings can force the touch buttons on or off.
 
 语言默认中文，会记住你的选择。
 
@@ -81,9 +81,9 @@ The default language is Chinese, and the choice is remembered.
 
 A day runs from 6:00 to midnight. About four game minutes pass each real second, and work pushes the clock a little more. At 22:00 you get a nudge to head home. At midnight you wake in bed and lose a little gold (10% of what you carry, at most 80). Running out of energy ends the day the same gentle way.
 
-一年四季各 28 天。季节会换草地和树的颜色，店里的种子也跟着换。雨天早晨作物算浇过。前三个春天是晴天，方便熟悉。冬天不能新种，枯掉的秧仍可以用锄头或手清掉。动物、村子、小径上的松果，还有花婶的热可可，都还在。日历会标出每种作物的最晚播种日。这一天仍然要每天浇水，漏浇可能赶不上换季。种得太晚会有一句提醒，地仍然种得下去。
+一年四季各 28 天。季节会换草地和树的颜色，店里的种子也跟着换。雨天早晨作物算浇过，邻居也会换一句雨天的话。第 7、14、21、28 天睡下后，会告诉你这一周运走了多少金。前三个春天是晴天，方便熟悉。冬天不能新种，枯掉的秧仍可以用锄头或手清掉。动物、村子、小径上的松果，还有花婶的热可可，都还在。日历会标出每种作物的最晚播种日。这一天仍然要每天浇水，漏浇可能赶不上换季。种得太晚会有一句提醒，地仍然种得下去。
 
-Each season is 28 days. The grass, trees, and seed shelf change with it. On rainy mornings, crops count as watered. The first three days of spring are sunny. Winter takes no new planting, but the hoe or an empty hand can still clear a wilted stalk. Animals, the village, pine cones on the path, and Aunt Hua's hot cocoa stay. The calendar marks the last safe planting day for each crop. That day still needs watering every day. Planting later shows a warning, and the seed still goes in the ground.
+Each season is 28 days. The grass, trees, and seed shelf change with it. On rainy mornings, crops count as watered, and each neighbor has a line for the rain. After you sleep on days 7, 14, 21, and 28, a note tells you what the bin shipped that week. The first three days of spring are sunny. Winter takes no new planting, but the hoe or an empty hand can still clear a wilted stalk. Animals, the village, pine cones on the path, and Aunt Hua's hot cocoa stay. The calendar marks the last safe planting day for each crop. That day still needs watering every day. Planting later shows a warning, and the seed still goes in the ground.
 
 | 季节 | 作物 | 生长 | 种子 / 售价 |
 | --- | --- | --- | --- |
@@ -105,19 +105,19 @@ When the season turns, crops that are not ready wilt. Ready ones can still be ha
 
 ## 动物 / Animals
 
-鸡舍里有咕咕（Cluck）和啄啄（Peck），牛棚里有哞哞（Moo）。每天喂一份饲料。喂过的鸡次日早晨有蛋，喂过的牛可以挤奶。忘了喂就没有产出，它们不会消失。每天可以摸一次，心情会好一点，不影响产蛋产奶。
+鸡舍里有咕咕（Cluck）和啄啄（Peck），牛棚里有哞哞（Moo）。每天喂一份饲料。喂过的鸡次日早晨有蛋，喂过的牛可以挤奶。忘了喂就没有产出，它们不会消失，心情会降 1 点，最低到 1。每天可以摸一次，心情加 1，最高 5。头顶的小心心：满格是红的，平常是粉的，偏低是灰的。心情到 5 时，鸡有 25% 的机会多下一枚蛋；牛的那桶奶卖价多 10 金。蛋的标价仍是 35，奶的标价仍是 90。
 
-Cluck and Peck live in the coop. Moo lives in the barn. Feed each of them once a day. Fed hens have an egg the next morning. A fed cow can be milked. Skip a meal and they simply skip produce. They do not die. Petting once a day lifts their mood and does not change produce.
+Cluck and Peck live in the coop. Moo lives in the barn. Feed each of them once a day. Fed hens have an egg the next morning. A fed cow can be milked. Skip a meal and they simply skip produce. They do not die. An unfed day lowers mood by 1, and it does not fall below 1. Petting once a day adds 1 mood, up to 5. The small heart above them is red when they are happy, pink when they are steady, and gray when they are low. At mood 5, a hen has a 25% chance of a second egg, and that cow's milk sells for 10 G more. The listed price of an egg stays 35 G, and milk stays 90 G.
 
-蛋卖 35 金，奶卖 90 金。饲料在花婶店里，10 金一份。只顾动物的一天是两枚蛋加一桶奶，扣掉三份饲料，净得 130 金。田是八格宽。一整行萝卜两天一熟，平均每天收四颗，扣掉种子净得 200 金，大约是动物那天的 1.5 倍。体力还够再种几行。多出来的金币可以换鸡舍新顶（1400）或家里的窗台花箱（900），这两样不增加收成。
+蛋卖 35 金，奶卖 90 金。饲料在花婶店里，10 金一份。只顾动物的一天是两枚蛋加一桶奶，扣掉三份饲料，净得 130 金。心情好时可能多一枚蛋，或那桶奶变成 100 金，这不算进日常的底账。田是八格宽。一整行萝卜两天一熟，平均每天收四颗，扣掉种子净得 200 金，大约是动物那天的 1.5 倍。体力还够再种几行。多出来的金币可以换鸡舍新顶（1400）或家里的窗台花箱（900），这两样不增加收成。
 
-Eggs sell for 35 G, milk for 90 G. Aunt Hua sells feed for 10 G. An animal-only day is two eggs and one pail of milk, minus three feed, which nets 130 G. The field is eight plots wide. A full row of turnips finishes every other day, so four sales a day, and after seeds that nets 200 G, about 1.5× the animal day. Energy still covers more rows. Spare gold can buy a new coop roof (1400) or a window box at home (900). Neither one adds produce.
+Eggs sell for 35 G, milk for 90 G. Aunt Hua sells feed for 10 G. An animal-only day is two eggs and one pail of milk, minus three feed, which nets 130 G. A happy extra egg, or a pail worth 100 G, is on top of that and is not part of the everyday sum. The field is eight plots wide. A full row of turnips finishes every other day, so four sales a day, and after seeds that nets 200 G, about 1.5× the animal day. Energy still covers more rows. Spare gold can buy a new coop roof (1400) or a window box at home (900). Neither one adds produce.
 
 ## 村民 / Villagers
 
-好感 0–5 心，可以是半颗。每天第一次说话加半颗心。每人每天仍只收一份礼物。喜欢的礼物加一颗心，别的食物会收下但不加心，讨厌的会礼貌地请你留着。到了 4 心，花婶会塞来一包当季种子（冬天是热可可），小梅会塞一根萝卜，桃奶奶会给一块南瓜饼。每样只给一次。
+好感 0–5 心，可以是半颗。每天第一次说话加半颗心。每人每天仍只收一份礼物。喜欢的礼物加一颗心，别的食物会收下但不加心，讨厌的会礼貌地请你留着。到了 4 心，花婶会塞来一包当季种子（冬天是热可可），小梅会塞一根萝卜，桃奶奶会给一块南瓜饼。每样只给一次。下雨天，每个人会先说一句只在雨天出现的话。你和邻居不会站到同一格上：他们会在走近你时停一下，你也走不进他们怀里，除非是为了退开。
 
-Friendship is 0–5 hearts, in half-heart steps. The first talk each day adds half a heart. Each person still accepts only one gift a day. A liked gift adds a heart. Other food is accepted with no extra heart. A disliked gift is politely refused. At 4 hearts, Aunt Hua gives a packet of this season's seeds (hot cocoa in winter), Mei gives a turnip, and Granny Tao gives a pumpkin cake. Each reward happens once.
+Friendship is 0–5 hearts, in half-heart steps. The first talk each day adds half a heart. Each person still accepts only one gift a day. A liked gift adds a heart. Other food is accepted with no extra heart. A disliked gift is politely refused. At 4 hearts, Aunt Hua gives a packet of this season's seeds (hot cocoa in winter), Mei gives a turnip, and Granny Tao gives a pumpkin cake. Each reward happens once. On a rainy day each neighbor opens with a line they only use in the rain. You and a neighbor do not share a tile: they pause when a step would land on you, and you cannot walk into them, unless you are stepping back out.
 
 | 人 | 在哪 | 喜欢 | 不收 |
 | --- | --- | --- | --- |
@@ -137,9 +137,9 @@ Also on the shelf: a sprinkler for 680 G (waters a 3×3 each morning, up to 8, t
 
 ## 存档 / Save
 
-睡觉、累倒、买下升级、每隔约 20 秒，以及关闭页面时，会写入浏览器的 `localStorage`。存档版本是 2，仍能读版本 1。存储键仍是 `farm-days-save-v1`。只认版本 1 的旧页面会安静地忽略版本 2 的存档。缺的字段会补上，动物会被拉回围栏。标题画面可以继续。已经有存档时，新的一天会先问一句，避免盖掉进度。语言、静音和触控按钮的选择单独记住。
+睡觉、累倒、买下升级、每隔约 20 秒，以及关闭页面时，会写入浏览器的 `localStorage`。存档版本是 2，仍能读版本 1。存储键仍是 `farm-days-save-v1`。只认版本 1 的旧页面会安静地忽略版本 2 的存档。缺的字段会补上，动物会被拉回围栏。旧档没有箱子时，会补上 12 个空格。标题画面可以继续。已经有存档时，新的一天会先问一句，避免盖掉进度。语言、静音和触控按钮的选择单独记住。
 
-The game writes to `localStorage` when you sleep, pass out, buy an upgrade, about every 20 seconds, and when the page closes. Saves are version 2 and still read version 1. The storage key is still `farm-days-save-v1`. A build that only understands version 1 will ignore a version 2 save. Missing fields are filled in, and animals are pulled back inside their pens. Continue is on the title screen. If a save already exists, New Game asks before it replaces that farm. Language, mute, and the touch-button choice are stored separately.
+The game writes to `localStorage` when you sleep, pass out, buy an upgrade, about every 20 seconds, and when the page closes. Saves are version 2 and still read version 1. The storage key is still `farm-days-save-v1`. A build that only understands version 1 will ignore a version 2 save. Missing fields are filled in, and animals are pulled back inside their pens. An older save with no chest gains 12 empty slots. Continue is on the title screen. If a save already exists, New Game asks before it replaces that farm. Language, mute, and the touch-button choice are stored separately.
 
 ## 目录 / Layout
 
@@ -157,9 +157,9 @@ src/input/       键盘、鼠标、触控 / keyboard, mouse, touch
 src/audio/       短音效和很轻的循环 / short SFX and a quiet loop
 ```
 
-画面是 320×224 的内部分辨率。宽屏按整数倍放大，窄屏和触控会用小数倍。竖屏把日期栏贴在上方，横屏把农场拉高，方向键和 A/B 放在两侧。名字写在单独的一层上，按屏幕分辨率绘制，并夹在画面里面。调色板大约二十多种颜色。没有外部图片，也没有需要密钥的服务。
+画面是 320×224 的内部分辨率。宽屏按整数倍放大，窄屏和触控会用小数倍。竖屏把日期栏贴在上方，方向键贴在底边。横屏把农场拉高，方向键和 A/B 放在两侧。名字写在单独的一层上，按屏幕分辨率绘制，并夹在画面里面。调色板大约二十多种颜色。没有外部图片，也没有需要密钥的服务。
 
-The view is 320×224 internally. Wide screens scale by whole pixels. Narrow and touch screens may use a fractional scale. Portrait pins the date line to the top. Landscape gives the farm the spare height and puts the pad and A/B at the sides. Nameplates are drawn on a separate layer at screen resolution and clamped inside the view. The palette is a little over twenty colors. There are no external images and no services that need a key.
+The view is 320×224 internally. Wide screens scale by whole pixels. Narrow and touch screens may use a fractional scale. Portrait pins the date line to the top and the pad to the bottom edge. Landscape gives the farm the spare height and puts the pad and A/B at the sides. Nameplates are drawn on a separate layer at screen resolution and clamped inside the view. The palette is a little over twenty colors. There are no external images and no services that need a key.
 
 ## 测试 / Tests
 
@@ -169,6 +169,6 @@ npm test
 
 `npm test` runs `node tests/unit.test.mjs`.
 
-覆盖瞄准（站在田 A、面向田 B、锄地只翻 B）、存档迁移、售价、好感、枯萎两天，以及面板按键。`node --check` 可以检查语法。页面里的 `window.__farm` 仍给自动化用（`newGame`、`getState`、`till`、`sleep`、`buy` 等）。钩子吞掉异常时会 `console.error`，不会把错误抛到页面上。
+覆盖瞄准（站在田 A、面向田 B、锄地只翻 B）、存档迁移、售价、好感、枯萎两天、人和村民的距离、箱子的存取、心情档位和多出来的蛋，以及面板按键。`node --check` 可以检查语法。页面里的 `window.__farm` 仍给自动化用（`newGame`、`getState`、`till`、`sleep`、`buy`、`chestMove` 等）。旧名字都还在，`chestMove` 是新加的。钩子吞掉异常时会 `console.error`，不会把错误抛到页面上。
 
-That file covers aiming (stand on plot A, face plot B, till only B), save migration, sell prices, friendship, the two-dry-day wilt, and panel keys. `node --check` covers syntax. `window.__farm` in the page is still there for automation (`newGame`, `getState`, `till`, `sleep`, `buy`, and the other hooks). Swallowed hook errors are logged with `console.error` and are not thrown into the page.
+That file covers aiming (stand on plot A, face plot B, till only B), save migration, sell prices, friendship, the two-dry-day wilt, keeping a step away from villagers, chest storage, mood tiers and the extra egg, and panel keys. `node --check` covers syntax. `window.__farm` in the page is still there for automation (`newGame`, `getState`, `till`, `sleep`, `buy`, `chestMove`, and the other hooks). Every previous name is still there. `chestMove` is the new one. Swallowed hook errors are logged with `console.error` and are not thrown into the page.
