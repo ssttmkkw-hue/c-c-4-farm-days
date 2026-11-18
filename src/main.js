@@ -5,6 +5,7 @@ import { hasSave, loadGame, loadSettings, saveGame } from './game/save.js';
 import { createState } from './game/state.js';
 import { createInput } from './input/input.js';
 import { fitCanvas, render, renderLabels } from './render/render.js';
+import { canvasReserve, sideTouchLayout } from './ui/layout.js';
 import { createUi } from './ui/ui.js';
 
 const canvas = document.getElementById('view');
@@ -112,24 +113,27 @@ let fitSlack = 0;
 function layout() {
   const playing = !!(ctx.state?.started && ctx.state.screen === 'play');
   const touchOn = ui.touchOn() && playing;
+  const sides = touchOn && sideTouchLayout(window.innerWidth, window.innerHeight);
+  document.body.classList.toggle('touch-sides', sides);
   const hud = document.getElementById('hud');
   const hotbar = document.getElementById('hotbar');
   const touch = document.getElementById('touch');
-  let reserve = 24;
-  if (playing) {
-    reserve += hud && !hud.hidden ? hud.offsetHeight : 26;
-    reserve += hotbar && !hotbar.hidden ? hotbar.offsetHeight : 40;
-  }
-  if (touchOn) reserve += touch && !touch.hidden ? touch.offsetHeight : 150;
+  const reserve = canvasReserve({
+    playing,
+    hud: playing ? (hud && !hud.hidden ? hud.offsetHeight : 26) : 0,
+    hotbar: playing ? (hotbar && !hotbar.hidden ? hotbar.offsetHeight : 40) : 0,
+    touch: touchOn ? (touch && !touch.hidden ? touch.offsetHeight : 150) : 0,
+    sideTouch: sides,
+  });
   viewScale = fitCanvas(canvas, reserve + fitSlack, labels);
   const hudTop = hud && playing && !hud.hidden ? hud.getBoundingClientRect().top : canvas.getBoundingClientRect().top;
-  const touchBottom = touchOn && touch && !touch.hidden ? touch.getBoundingClientRect().bottom : 0;
-  const overflow = Math.max(0, 2 - hudTop, touchBottom - window.innerHeight);
-  if (overflow > 1) {
+  const touchBottom = touchOn && !sides && touch && !touch.hidden ? touch.getBoundingClientRect().bottom : 0;
+  const overflow = Math.max(0, -hudTop, touchBottom - window.innerHeight);
+  if (overflow > 1 && fitSlack < 160) {
     fitSlack += overflow + 4;
     viewScale = fitCanvas(canvas, reserve + fitSlack, labels);
-  } else if (hudTop > 80 && fitSlack > 0) {
-    fitSlack = Math.max(0, fitSlack - Math.min(fitSlack, hudTop - 64));
+  } else if (overflow <= 0 && fitSlack > 0) {
+    fitSlack = Math.max(0, fitSlack - 8);
     viewScale = fitCanvas(canvas, reserve + fitSlack, labels);
   }
 }

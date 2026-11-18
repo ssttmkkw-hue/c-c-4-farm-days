@@ -2,6 +2,7 @@ import { CROPS } from '../data/crops.js';
 import { npcDef } from '../data/dialogues.js';
 import { STR } from '../data/strings.js';
 import {
+  COCOA_ENERGY,
   SPRINKLER_CAP,
   forageForSeason,
   isGiftable,
@@ -343,6 +344,7 @@ export function useTool(state) {
     }
     return feed(state, animal.id);
   }
+  if (item.id === 'cocoa') return drinkCocoa(state);
   if (item.id === 'hand') {
     const spot = pickPlotTile(state);
     const under = plotAt(state, spot.x, spot.y);
@@ -357,6 +359,22 @@ export function useTool(state) {
   }
   showToast(state, 'toast_nothing');
   return false;
+}
+
+function drinkCocoa(state) {
+  const slot = held(state);
+  if (!slot || slot.id !== 'cocoa' || slot.qty < 1) return false;
+  const max = state.energyMax || ENERGY_MAX;
+  if (state.energy >= max) {
+    showToast(state, 'toast_cocoa_full');
+    return false;
+  }
+  slot.qty -= 1;
+  if (slot.qty <= 0) state.inventory[state.hotbar] = null;
+  state.energy = Math.min(max, state.energy + COCOA_ENERGY);
+  playSfx(state, 'drink');
+  showToast(state, 'toast_cocoa', { n: COCOA_ENERGY });
+  return true;
 }
 
 function sprinklerTarget(state) {

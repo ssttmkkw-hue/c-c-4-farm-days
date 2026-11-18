@@ -15,7 +15,9 @@ globalThis.localStorage = {
 
 const { STR } = await import('../src/data/strings.js');
 const { CROPS } = await import('../src/data/crops.js');
-const { FEED_PRICE, sellPrice } = await import('../src/data/items.js');
+const { COCOA_ENERGY, COCOA_PRICE, FEED_PRICE, sellPrice } = await import('../src/data/items.js');
+const { addItem } = await import('../src/game/inventory.js');
+const { canvasReserve, sideTouchLayout } = await import('../src/ui/layout.js');
 const { createState } = await import('../src/game/state.js');
 const { PEN } = await import('../src/game/pens.js');
 const { migrate, loadGame, saveGame } = await import('../src/game/save.js');
@@ -226,6 +228,64 @@ function qty(state, id) {
   update(state, { x: 0, y: 0, pressed: { close: true }, holdUse: false, wheel: 0 }, 16);
   assert.equal(state.panel, null);
   assert.equal(state.seenHelp, true);
+}
+
+// Hot cocoa is drinkable and does not sell below its shop price.
+{
+  assert.ok(sellPrice('cocoa') >= 30);
+  assert.ok(sellPrice('cocoa') <= COCOA_PRICE);
+  const state = createState();
+  state.energy = 40;
+  assert.equal(addItem(state, 'cocoa', 2), true);
+  state.hotbar = state.inventory.findIndex((item) => item && item.id === 'cocoa');
+  assert.equal(useTool(state), true);
+  assert.equal(state.energy, 40 + COCOA_ENERGY);
+  assert.equal(qty(state, 'cocoa'), 1);
+  assert.equal(state.toast.key, 'toast_cocoa');
+  state.energy = 90;
+  assert.equal(useTool(state), true);
+  assert.equal(state.energy, 100);
+  assert.equal(qty(state, 'cocoa'), 0);
+  state.energy = 50;
+  addItem(state, 'cocoa', 1);
+  state.hotbar = state.inventory.findIndex((item) => item && item.id === 'cocoa');
+  state.energy = state.energyMax;
+  assert.equal(useTool(state), false);
+  assert.equal(qty(state, 'cocoa'), 1);
+  assert.equal(state.toast.key, 'toast_cocoa_full');
+
+  state.energy = 10;
+  const before = qty(state, 'cocoa');
+  update(state, { x: 0, y: 0, pressed: {}, holdUse: true, wheel: 0 }, 1000);
+  assert.equal(qty(state, 'cocoa'), before);
+  assert.equal(state.energy, 10);
+}
+
+// Late planting and the calendar say the crop still needs water every day.
+{
+  assert.match(STR.toast_late_plant.zh, /浇水/);
+  assert.match(STR.toast_late_plant.en, /water/i);
+  assert.match(STR.cal_last.zh, /浇水/);
+  assert.match(STR.cal_last.en, /water/i);
+  assert.match(STR.cal_mark.zh, /浇水/);
+  assert.match(STR.cal_mark.en, /water/i);
+  assert.match(STR.upgrade_coop_desc.en, /same price/i);
+  assert.match(STR.upgrade_hearth_desc.en, /no extra gold/i);
+  assert.match(STR.cocoa_desc.zh, /体力/);
+}
+
+// Landscape keeps the touch pad out of the canvas reserve. Portrait still stacks it.
+{
+  assert.equal(sideTouchLayout(844, 390), true);
+  assert.equal(sideTouchLayout(667, 375), true);
+  assert.equal(sideTouchLayout(390, 844), false);
+  assert.equal(sideTouchLayout(360, 640), false);
+  const chrome = { playing: true, hud: 28, hotbar: 34, touch: 140 };
+  const side = canvasReserve({ ...chrome, sideTouch: true });
+  const stacked = canvasReserve({ ...chrome, sideTouch: false });
+  assert.equal(side, 24 + 28 + 34);
+  assert.ok(stacked > side);
+  assert.ok(390 - side > 390 - stacked);
 }
 
 for (const [key, row] of Object.entries(STR)) {

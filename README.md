@@ -55,9 +55,9 @@ You start with 200 G, 6 turnip seed packets, 9 feed, 1 egg, and 1 milk. Energy i
 | 送礼 / Give the held item | 对话中按 G / G during dialogue |
 | 关闭面板，或打开设置 / Close a panel, or open settings | Esc |
 
-互动包括：说话、摸动物、捡蛋、挤奶、打开运送箱和箱子、在井边装水、柜台买东西、看告示板、面对床睡觉。
+互动包括：说话、摸动物、捡蛋、挤奶、打开运送箱和背包、在井边装水、柜台买东西、看告示板、面对床睡觉。
 
-Interact talks, pets, picks up eggs, milks, opens the bin and the chest, fills the can, shops at the counter, reads the board, and sleeps when you face the bed.
+Interact talks, pets, picks up eggs, milks, opens the bin and the bag, fills the can, shops at the counter, reads the board, and sleeps when you face the bed.
 
 ### 鼠标 / Mouse
 
@@ -67,9 +67,9 @@ Left click uses the tool on an adjacent tile. Right click interacts. The wheel c
 
 ### 触控 / Touch
 
-窄屏或触控设备会显示方向键、A（工具）、B（互动）、背包、日历、睡觉和菜单。睡觉键在家里会打开确认。画面顶部的 **EN / 中** 切换语言，♪ 开关声音。设置里可以强制显示或隐藏触控按钮。
+窄屏或触控设备会显示方向键、A（工具）、B（互动）、背包、日历、睡觉和菜单。竖屏时它们在画面下方，横屏时方向键在左、A/B 在右。睡觉键在家里会打开确认。画面顶部的 **EN / 中** 切换语言，♪ 开关声音。设置里可以强制显示或隐藏触控按钮。
 
-On a narrow screen or a touch device, a pad appears: A uses the tool, B interacts, plus bag, calendar, sleep, and menu. The sleep button opens the confirm dialog while you are home. **EN / 中** on the top bar switches language. ♪ mutes. Settings can force the touch buttons on or off.
+On a narrow screen or a touch device, a pad appears: A uses the tool, B interacts, plus bag, calendar, sleep, and menu. In portrait the pad sits under the picture. In landscape the pad is on the left and A/B are on the right. The sleep button opens the confirm dialog while you are home. **EN / 中** on the top bar switches language. ♪ mutes. Settings can force the touch buttons on or off.
 
 语言默认中文，会记住你的选择。
 
@@ -81,9 +81,9 @@ The default language is Chinese, and the choice is remembered.
 
 A day runs from 6:00 to midnight. About four game minutes pass each real second, and work pushes the clock a little more. At 22:00 you get a nudge to head home. At midnight you wake in bed and lose a little gold (10% of what you carry, at most 80). Running out of energy ends the day the same gentle way.
 
-一年四季各 28 天。季节会换草地和树的颜色，店里的种子也跟着换。雨天早晨作物算浇过。前三个春天是晴天，方便熟悉。冬天不能新种，枯掉的秧仍可以用锄头或手清掉。动物、村子、小径上的松果，还有花婶的热可可，都还在。日历会标出每种作物的最晚播种日。种得太晚会有一句提醒，地仍然种得下去。
+一年四季各 28 天。季节会换草地和树的颜色，店里的种子也跟着换。雨天早晨作物算浇过。前三个春天是晴天，方便熟悉。冬天不能新种，枯掉的秧仍可以用锄头或手清掉。动物、村子、小径上的松果，还有花婶的热可可，都还在。日历会标出每种作物的最晚播种日。这一天仍然要每天浇水，漏浇可能赶不上换季。种得太晚会有一句提醒，地仍然种得下去。
 
-Each season is 28 days. The grass, trees, and seed shelf change with it. On rainy mornings, crops count as watered. The first three days of spring are sunny. Winter takes no new planting, but the hoe or an empty hand can still clear a wilted stalk. Animals, the village, pine cones on the path, and Aunt Hua's hot cocoa stay. The calendar marks the last safe planting day for each crop. Planting later shows a warning, and the seed still goes in the ground.
+Each season is 28 days. The grass, trees, and seed shelf change with it. On rainy mornings, crops count as watered. The first three days of spring are sunny. Winter takes no new planting, but the hoe or an empty hand can still clear a wilted stalk. Animals, the village, pine cones on the path, and Aunt Hua's hot cocoa stay. The calendar marks the last safe planting day for each crop. That day still needs watering every day. Planting later shows a warning, and the seed still goes in the ground.
 
 | 季节 | 作物 | 生长 | 种子 / 售价 |
 | --- | --- | --- | --- |
@@ -93,7 +93,7 @@ Each season is 28 days. The grass, trees, and seed shelf change with it. On rain
 | 夏 Summer | 玉米 Corn | 5 天 | 70 / 190 |
 | 秋 Autumn | 南瓜 Pumpkin | 5 天 | 90 / 230 |
 | 秋 Autumn | 地瓜 Sweet potato | 3 天 | 40 / 120 |
-| 冬 Winter | 不播种。松果 25 金，热可可 30 买 / 18 卖。 no planting. Pine cones 25 G, hot cocoa 30 to buy / 18 to sell |  |  |
+| 冬 Winter | 不播种。松果 25 金。热可可 30 金买、30 金卖，选中后按使用回复 30 点体力。 no planting. Pine cones 25 G. Hot cocoa is 30 G to buy and 30 G to sell; select it and press Use to regain 30 energy |  |  |
 
 小径上还能捡到：春野草、夏野莓、秋蘑菇。
 
@@ -131,15 +131,15 @@ Friendship is 0–5 hearts, in half-heart steps. The first talk each day adds ha
 
 Face the counter to buy. The shop is open from 6:00 to 20:00. Seeds and feed can be bought ×1, ×5, or ×10.
 
-店里还有：洒水器 680 金（每天早晨浇周围 3×3，最多 8 个，锄头可以收回）、大水壶 420 金（容量 40）、背包 360 金（16 格变 24 格）、鸡舍新顶 1400 金、窗台花箱 900 金。冬天另有热可可，30 金。
+店里还有：洒水器 680 金（每天早晨浇周围 3×3，最多 8 个，锄头可以收回）、大水壶 420 金（容量 40）、背包 360 金（16 格变 24 格）、鸡舍新顶 1400 金（只换样子，蛋和售价不变）、窗台花箱 900 金（只为好看，不加收成）。冬天另有热可可，30 金，选中后按使用回复体力，卖出也是 30 金。
 
-Also on the shelf: a sprinkler for 680 G (waters a 3×3 each morning, up to 8, the hoe picks it back up), a bigger can for 420 G (40 charges), a backpack for 360 G (16 slots become 24), a coop roof for 1400 G, and a window box for 900 G. In winter there is also hot cocoa for 30 G.
+Also on the shelf: a sprinkler for 680 G (waters a 3×3 each morning, up to 8, the hoe picks it back up), a bigger can for 420 G (40 charges), a backpack for 360 G (16 slots become 24), a coop roof for 1400 G (a new look; eggs and their price stay the same), and a window box for 900 G (flowers at home, no extra gold). In winter there is also hot cocoa for 30 G. Select it and press Use to restore energy. It sells for 30 G.
 
 ## 存档 / Save
 
-睡觉、累倒、买下升级、每隔约 20 秒，以及关闭页面时，会写入浏览器的 `localStorage`。存档版本是 2，仍能读版本 1，缺的字段会补上，动物会被拉回围栏。标题画面可以继续。已经有存档时，新的一天会先问一句，避免盖掉进度。语言、静音和触控按钮的选择单独记住。
+睡觉、累倒、买下升级、每隔约 20 秒，以及关闭页面时，会写入浏览器的 `localStorage`。存档版本是 2，仍能读版本 1。存储键仍是 `farm-days-save-v1`。只认版本 1 的旧页面会安静地忽略版本 2 的存档。缺的字段会补上，动物会被拉回围栏。标题画面可以继续。已经有存档时，新的一天会先问一句，避免盖掉进度。语言、静音和触控按钮的选择单独记住。
 
-The game writes to `localStorage` when you sleep, pass out, buy an upgrade, about every 20 seconds, and when the page closes. Saves are version 2 and still read version 1. Missing fields are filled in, and animals are pulled back inside their pens. Continue is on the title screen. If a save already exists, New Game asks before it replaces that farm. Language, mute, and the touch-button choice are stored separately.
+The game writes to `localStorage` when you sleep, pass out, buy an upgrade, about every 20 seconds, and when the page closes. Saves are version 2 and still read version 1. The storage key is still `farm-days-save-v1`. A build that only understands version 1 will ignore a version 2 save. Missing fields are filled in, and animals are pulled back inside their pens. Continue is on the title screen. If a save already exists, New Game asks before it replaces that farm. Language, mute, and the touch-button choice are stored separately.
 
 ## 目录 / Layout
 
@@ -157,15 +157,17 @@ src/input/       键盘、鼠标、触控 / keyboard, mouse, touch
 src/audio/       短音效和很轻的循环 / short SFX and a quiet loop
 ```
 
-画面是 320×224 的内部分辨率。宽屏按整数倍放大，窄屏和触控会用小数倍把农场拉到接近屏幕宽度，日期栏和工具栏放在画面外面。名字写在单独的一层上，按屏幕分辨率绘制，并夹在画面里面。调色板大约二十多种颜色。没有外部图片，也没有需要密钥的服务。
+画面是 320×224 的内部分辨率。宽屏按整数倍放大，窄屏和触控会用小数倍。竖屏把日期栏贴在上方，横屏把农场拉高，方向键和 A/B 放在两侧。名字写在单独的一层上，按屏幕分辨率绘制，并夹在画面里面。调色板大约二十多种颜色。没有外部图片，也没有需要密钥的服务。
 
-The view is 320×224 internally. Wide screens scale by whole pixels. Narrow and touch screens may use a fractional scale so the farm fills the width, with the date line and the hotbar outside the picture. Nameplates are drawn on a separate layer at screen resolution and clamped inside the view. The palette is a little over twenty colors. There are no external images and no services that need a key.
+The view is 320×224 internally. Wide screens scale by whole pixels. Narrow and touch screens may use a fractional scale. Portrait pins the date line to the top. Landscape gives the farm the spare height and puts the pad and A/B at the sides. Nameplates are drawn on a separate layer at screen resolution and clamped inside the view. The palette is a little over twenty colors. There are no external images and no services that need a key.
 
 ## 测试 / Tests
 
 ```bash
-node tests/unit.test.mjs
+npm test
 ```
+
+`npm test` runs `node tests/unit.test.mjs`.
 
 覆盖瞄准（站在田 A、面向田 B、锄地只翻 B）、存档迁移、售价、好感、枯萎两天，以及面板按键。`node --check` 可以检查语法。页面里的 `window.__farm` 仍给自动化用（`newGame`、`getState`、`till`、`sleep`、`buy` 等）。钩子吞掉异常时会 `console.error`，不会把错误抛到页面上。
 

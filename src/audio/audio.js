@@ -59,6 +59,10 @@ export function createAudio() {
     else if (name === 'ship') tone(300, 0.1, 'triangle', 0.03, 180);
     else if (name === 'sleep') tone(360, 0.25, 'sine', 0.02, 220);
     else if (name === 'gift') tone(760, 0.1, 'triangle', 0.03, 980);
+    else if (name === 'drink') {
+      tone(520, 0.08, 'sine', 0.03, 640);
+      tone(680, 0.12, 'triangle', 0.02, 520);
+    }
     else if (name === 'place') tone(240, 0.08, 'square', 0.03, 140);
   }
 

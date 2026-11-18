@@ -8,7 +8,7 @@ export const GOODS = {
   forage_berry: { sell: 35 },
   forage_mushroom: { sell: 40 },
   forage_cone: { sell: 25 },
-  cocoa: { sell: 18 },
+  cocoa: { sell: 30 },
   pumpkin_cake: { sell: 40 },
 };
 
@@ -22,6 +22,8 @@ export const UPGRADES = {
 };
 
 export const COCOA_PRICE = 30;
+/** Energy restored by drinking one hot cocoa. Selling it does not pay more than the shop price. */
+export const COCOA_ENERGY = 30;
 
 export const SPRINKLER_PRICE = 680;
 export const FEED_PRICE = 10;

@@ -46,8 +46,12 @@ body {
 }
 
 body.touch-on {
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
+
+.hud-cluster { display: contents; }
+
+#hud-gold { white-space: nowrap; }
 
 button, input { font-family: inherit; }
 
@@ -398,6 +402,87 @@ button.on { background: var(--gold); }
   #touch button { width: 36px; min-height: 34px; font-size: 13px; }
   .t-right { gap: 3px; max-width: 230px; }
   .t-right button { min-height: 34px; }
+}
+
+/* Short phones: date and gold stay on one line; energy drops to a second row. */
+@media (max-width: 480px) {
+  #hud { padding: 2px 4px 1px; }
+  .hud-top {
+    flex-wrap: wrap;
+    font-size: 12px;
+    gap: 1px 6px;
+    letter-spacing: 0;
+  }
+  #hud-date, #hud-time, #hud-gold, #energy-label, #hud-can {
+    flex: 0 0 auto;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
+  }
+  .hud-actions { order: 1; margin-left: auto; }
+  .hud-cluster {
+    display: flex;
+    order: 2;
+    flex: 1 0 100%;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+  .energy { width: 48px; height: 8px; }
+  #hud button {
+    min-width: 28px;
+    min-height: 26px;
+    padding: 0 5px;
+  }
+}
+
+/* Landscape phones: a taller farm, with the pad in the side gutters. */
+body.touch-sides {
+  justify-content: flex-start;
+}
+
+body.touch-sides #touch {
+  position: fixed;
+  z-index: 6;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: auto;
+  max-width: none;
+  height: auto;
+  margin: 0;
+  pointer-events: none;
+  align-items: center;
+  justify-content: space-between;
+  padding:
+    calc(4px + env(safe-area-inset-top))
+    calc(4px + env(safe-area-inset-right))
+    calc(4px + env(safe-area-inset-bottom))
+    calc(4px + env(safe-area-inset-left));
+  background: none;
+}
+
+body.touch-sides #touch button {
+  pointer-events: auto;
+}
+
+body.touch-sides .dpad,
+body.touch-sides .t-right {
+  align-self: center;
+}
+
+body.touch-sides .t-right {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: none;
+  grid-template-columns: 36px 36px;
+  gap: 3px;
+}
+
+body.touch-sides .t-right button {
+  width: 36px;
+  min-width: 0;
 }
 
 @media (max-width: 420px) {
