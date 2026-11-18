@@ -83,40 +83,59 @@ export function drawPerson(ctx, x, y, look, dir, step) {
   ctx.restore();
 }
 
-export function drawChicken(ctx, x, y, id, step, hasEgg) {
-  const body = id === 'peck' ? '#c47a4a' : '#fffaf2';
+export function drawChicken(ctx, x, y, id, step, hasEgg, peck) {
+  const body = id === 'peck' ? '#e08a48' : '#fffaf2';
   const bob = step % 2;
-  ctx.fillStyle = 'rgba(44,36,28,0.25)';
-  ctx.fillRect(x + 4, y + 13, 8, 2);
+  const neck = peck ? 3 : 0;
+  ctx.fillStyle = 'rgba(44,36,28,0.35)';
+  ctx.fillRect(x + 3, y + 14, 10, 2);
+  px(ctx, x + 2, y + 6 + bob, 10, 7, '#2c241c');
   px(ctx, x + 3, y + 7 + bob, 8, 5, body);
-  px(ctx, x + 10, y + 5 + bob, 4, 4, body);
-  px(ctx, x + 11, y + 3 + bob, 2, 2, '#c4503a');
-  px(ctx, x + 14, y + 6 + bob, 2, 2, '#e6c15a');
-  px(ctx, x + 12, y + 6 + bob, 1, 1, PAL.ink);
-  px(ctx, x + 1, y + 8 + bob, 2, 3, body);
-  px(ctx, x + 4, y + 12, 1, 2, '#e6c15a');
-  px(ctx, x + 8, y + 12, 1, 2, '#e6c15a');
+  px(ctx, x + 9, y + 4 + bob + neck, 6, 5, '#2c241c');
+  px(ctx, x + 10, y + 5 + bob + neck, 4, 3, body);
+  px(ctx, x + 12, y + 3 + bob + neck, 2, 2, '#c4503a');
+  px(ctx, x + 14, y + 6 + bob + neck, 2, 2, '#e6c15a');
+  px(ctx, x + 12, y + 6 + bob + neck, 1, 1, PAL.ink);
+  px(ctx, x + 0, y + 8 + bob, 3, 3, body);
+  px(ctx, x + 4, y + 12, 2, 3, '#e6c15a');
+  px(ctx, x + 8, y + 12, 2, 3, '#c47a4a');
   if (hasEgg) {
-    px(ctx, x + 0, y + 11, 3, 3, '#f6edd8');
-    px(ctx, x + 0, y + 13, 3, 1, '#e2c79a');
+    px(ctx, x - 1, y + 11, 4, 4, '#fffaf2');
+    px(ctx, x - 1, y + 14, 4, 1, '#e2c79a');
+    px(ctx, x, y + 12, 2, 1, '#f3e2c4');
   }
 }
 
-export function drawCow(ctx, x, y, step, hasMilk) {
+export function drawCow(ctx, x, y, step, hasMilk, swish) {
   const bob = step % 2;
-  ctx.fillStyle = 'rgba(44,36,28,0.25)';
-  ctx.fillRect(x + 2, y + 14, 12, 2);
-  px(ctx, x + 1, y + 6, 11, 7, '#f4efe4');
-  px(ctx, x + 3, y + 7, 3, 2, '#6e4324');
-  px(ctx, x + 8, y + 9, 2, 2, '#6e4324');
-  px(ctx, x + 11, y + 4 + bob, 5, 5, '#f4efe4');
-  px(ctx, x + 12, y + 3 + bob, 2, 2, '#e6c15a');
-  px(ctx, x + 15, y + 6 + bob, 2, 2, '#e7a090');
-  px(ctx, x + 13, y + 5 + bob, 1, 1, PAL.ink);
-  px(ctx, x + 2, y + 13, 2, 3, '#f4efe4');
-  px(ctx, x + 6, y + 13, 2, 3, '#f4efe4');
-  px(ctx, x + 9, y + 13, 2, 3, '#6e4324');
-  if (hasMilk) px(ctx, x + 4, y + 12, 3, 2, '#f7c1d0');
+  const tail = swish ? 3 : 0;
+  ctx.fillStyle = 'rgba(44,36,28,0.35)';
+  ctx.fillRect(x + 1, y + 16, 16, 3);
+  px(ctx, x + 0, y + 7, 16, 9, '#2c241c');
+  px(ctx, x + 1, y + 8, 14, 7, '#f7f1e4');
+  px(ctx, x + 3, y + 9, 4, 3, '#6e4324');
+  px(ctx, x + 8, y + 11, 3, 2, '#6e4324');
+  px(ctx, x + 5, y + 8, 3, 2, '#5c3b28');
+  px(ctx, x + 12, y + 4 + bob, 8, 8, '#2c241c');
+  px(ctx, x + 13, y + 5 + bob, 6, 6, '#f7f1e4');
+  px(ctx, x + 14, y + 3 + bob, 2, 3, '#e6c15a');
+  px(ctx, x + 17, y + 4 + bob, 2, 2, '#e6c15a');
+  px(ctx, x + 17, y + 7 + bob, 3, 2, '#e7a090');
+  px(ctx, x + 15, y + 6 + bob, 2, 2, '#2c241c');
+  px(ctx, x + 13, y + 10 + bob, 2, 2, '#f0c14a');
+  px(ctx, x + 2, y + 14, 3, 4, '#2c241c');
+  px(ctx, x + 6, y + 14, 3, 4, '#2c241c');
+  px(ctx, x + 10, y + 14, 3, 4, '#2c241c');
+  px(ctx, x + 2, y + 15, 3, 3, '#f7f1e4');
+  px(ctx, x + 6, y + 15, 3, 3, '#f7f1e4');
+  px(ctx, x + 10, y + 15, 3, 3, '#6e4324');
+  px(ctx, x - 2 + tail, y + 8, 3, 6, '#2c241c');
+  px(ctx, x - 3 + tail, y + 13, 4, 2, '#6e4324');
+  if (hasMilk) {
+    px(ctx, x + 4, y + 13, 6, 3, '#f4a8be');
+    px(ctx, x + 5, y + 16, 1, 2, '#f7c1d0');
+    px(ctx, x + 8, y + 16, 1, 2, '#f7c1d0');
+  }
 }
 
 export function drawTree(ctx, sx, sy, season, x, y) {

@@ -17,7 +17,7 @@ import { bodyBlocked } from '../world/tiles.js';
 
 const PEN = {
   chicken: { x0: 4.05, y0: 8.05, x1: 7.75, y1: 9.72 },
-  cow: { x0: 4.05, y0: 13.05, x1: 7.75, y1: 14.72 },
+  cow: { x0: 13.2, y0: 9.25, x1: 17.7, y1: 11.15 },
 };
 
 function emptyInput() {
@@ -145,8 +145,8 @@ function wanderAnimals(state, dt) {
     const pen = a.type === 'cow' ? PEN.cow : PEN.chicken;
     a.timer -= dt;
     if (a.timer <= 0) {
-      a.timer = 1.3 + Math.random() * 1.8;
-      a.dir = ['up', 'down', 'left', 'right', 'down'][Math.floor(Math.random() * 5)];
+      a.timer = 0.7 + Math.random() * 1.4;
+      a.dir = ['up', 'down', 'left', 'right', 'idle', 'idle'][Math.floor(Math.random() * 6)];
     }
     let dx = 0;
     let dy = 0;

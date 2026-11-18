@@ -43,17 +43,16 @@ function buildFarm() {
   fill(g, 4, 8, 4, 2, '.');
   g[10][5] = 'g';
   g[10][6] = 'g';
-  fence(g, 3, 12, 6, 4);
-  fill(g, 4, 13, 4, 2, '.');
-  g[15][5] = 'g';
-  g[15][6] = 'g';
+  // Cow pen sits beside the lane so the barn is in the first view from the door.
+  fence(g, 12, 8, 8, 5);
+  g[10][12] = 'g';
+  g[11][12] = 'g';
   fill(g, 23, 7, 8, 6, 's');
-  g[3][21] = 'w';
-  g[3][22] = 'w';
+  g[4][15] = 'w';
   g[16][4] = 'c';
-  g[16][26] = 'X';
+  g[7][19] = 'X';
   fill(g, 13, 16, 5, 2, '~');
-  g[8][12] = 'T';
+  g[8][22] = 'T';
   g[11][20] = 'T';
   g[6][28] = 'f';
   g[17][11] = 'f';
@@ -104,28 +103,70 @@ function buildPath() {
   return g;
 }
 
+function rug(list, x, y, w, h) {
+  for (let j = 0; j < h; j++) {
+    for (let i = 0; i < w; i++) list.push({ x: x + i, y: y + j, kind: 'rug' });
+  }
+}
+
 function buildHouse() {
-  const g = blank(14, 11, 'F');
+  const g = blank(22, 16, 'F');
   border(g, '#');
   g[3][3] = 'B';
   g[3][4] = 'B';
   g[4][3] = 'B';
   g[4][4] = 'B';
-  g[9][6] = 'D';
-  g[9][7] = 'D';
+  g[15][10] = 'D';
+  g[15][11] = 'D';
   return g;
+}
+
+function houseDecor() {
+  const d = [];
+  rug(d, 8, 7, 5, 3);
+  d.push({ x: 16, y: 4, kind: 'table' });
+  d.push({ x: 18, y: 4, kind: 'plant' });
+  d.push({ x: 16, y: 10, kind: 'shelf' });
+  d.push({ x: 6, y: 6, kind: 'lamp' });
+  d.push({ x: 17, y: 8, kind: 'plant' });
+  d.push({ x: 5, y: 0, kind: 'window' });
+  d.push({ x: 16, y: 0, kind: 'window' });
+  d.push({ x: 0, y: 8, kind: 'window' });
+  d.push({ x: 21, y: 8, kind: 'window' });
+  d.push({ x: 10, y: 13, kind: 'mat' });
+  d.push({ x: 11, y: 13, kind: 'mat' });
+  return d;
 }
 
 function buildShop() {
-  const g = blank(14, 11, 'F');
+  const g = blank(22, 16, 'F');
   border(g, '#');
-  fill(g, 3, 3, 6, 1, 'k');
-  g[9][6] = 'D';
-  g[9][7] = 'D';
+  fill(g, 3, 3, 10, 1, 'k');
+  g[15][10] = 'D';
+  g[15][11] = 'D';
   return g;
 }
 
-function pack(id, grid, links, spawn) {
+function shopDecor() {
+  const d = [];
+  rug(d, 7, 8, 6, 3);
+  d.push({ x: 16, y: 5, kind: 'shelf' });
+  d.push({ x: 17, y: 5, kind: 'shelf' });
+  d.push({ x: 18, y: 8, kind: 'crate' });
+  d.push({ x: 18, y: 10, kind: 'crate' });
+  d.push({ x: 4, y: 6, kind: 'plant' });
+  d.push({ x: 18, y: 12, kind: 'plant' });
+  d.push({ x: 6, y: 7, kind: 'lamp' });
+  d.push({ x: 5, y: 0, kind: 'window' });
+  d.push({ x: 16, y: 0, kind: 'window' });
+  d.push({ x: 0, y: 6, kind: 'window' });
+  d.push({ x: 21, y: 6, kind: 'window' });
+  d.push({ x: 10, y: 13, kind: 'mat' });
+  d.push({ x: 11, y: 13, kind: 'mat' });
+  return d;
+}
+
+function pack(id, grid, links, spawn, decor) {
   return {
     id,
     w: grid[0].length,
@@ -133,30 +174,31 @@ function pack(id, grid, links, spawn) {
     tiles: grid,
     links,
     spawn,
+    decor: decor || [],
   };
 }
 
 export const MAPS = {
   farm: pack('farm', buildFarm(), [
-    { x: 6, y: 5, to: 'house', sx: 6, sy: 7, dir: 'up' },
+    { x: 6, y: 5, to: 'house', sx: 10, sy: 12, dir: 'up' },
     { x: 30, y: 18, to: 'path', sx: 2, sy: 5, dir: 'right' },
   ], { x: 6, y: 6, dir: 'down' }),
   village: pack('village', buildVillage(), [
     { x: 1, y: 16, to: 'path', sx: 14, sy: 5, dir: 'left' },
-    { x: 15, y: 10, to: 'shop', sx: 6, sy: 7, dir: 'up' },
+    { x: 15, y: 10, to: 'shop', sx: 10, sy: 12, dir: 'up' },
   ], { x: 15, y: 12, dir: 'up' }),
   path: pack('path', buildPath(), [
     { x: 1, y: 5, to: 'farm', sx: 28, sy: 18, dir: 'left' },
     { x: 16, y: 5, to: 'village', sx: 3, sy: 16, dir: 'right' },
   ], { x: 8, y: 5, dir: 'down' }),
   house: pack('house', buildHouse(), [
-    { x: 6, y: 9, to: 'farm', sx: 6, sy: 6, dir: 'down' },
-    { x: 7, y: 9, to: 'farm', sx: 6, sy: 6, dir: 'down' },
-  ], { x: 6, y: 7, dir: 'up' }),
+    { x: 10, y: 15, to: 'farm', sx: 6, sy: 6, dir: 'down' },
+    { x: 11, y: 15, to: 'farm', sx: 6, sy: 6, dir: 'down' },
+  ], { x: 10, y: 12, dir: 'up' }, houseDecor()),
   shop: pack('shop', buildShop(), [
-    { x: 6, y: 9, to: 'village', sx: 15, sy: 11, dir: 'down' },
-    { x: 7, y: 9, to: 'village', sx: 15, sy: 11, dir: 'down' },
-  ], { x: 6, y: 7, dir: 'up' }),
+    { x: 10, y: 15, to: 'village', sx: 15, sy: 11, dir: 'down' },
+    { x: 11, y: 15, to: 'village', sx: 15, sy: 11, dir: 'down' },
+  ], { x: 10, y: 12, dir: 'up' }, shopDecor()),
 };
 
 export function getMap(id) {

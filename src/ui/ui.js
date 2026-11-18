@@ -162,9 +162,22 @@ export function createUi(ctx) {
     document.getElementById('btn-mute').textContent = muted ? '×' : '♪';
     document.getElementById('btn-mute').setAttribute('aria-label', t(L, muted ? 'mute_off' : 'mute_on'));
     const touch = document.getElementById('touch');
-    const showTouch = touchOn();
+    const showTouch = touchOn() && playing;
     touch.hidden = !showTouch;
     document.body.classList.toggle('touch-on', showTouch);
+    const label = (btn, key) => {
+      const el = touch.querySelector('[data-btn="' + btn + '"]');
+      if (!el) return;
+      const text = t(L, key);
+      if (btn === 'inv' || btn === 'cal' || btn === 'sleep' || btn === 'menu') el.textContent = text;
+      el.setAttribute('aria-label', text);
+    };
+    label('use', 'btn_use');
+    label('interact', 'btn_talk');
+    label('inv', 'btn_bag');
+    label('cal', 'btn_cal');
+    label('sleep', 'btn_sleep');
+    label('menu', 'btn_menu');
     if (!playing) {
       toast.hidden = true;
       return;
@@ -273,9 +286,10 @@ export function createUi(ctx) {
       const giveBtn = item && isGiftable(item.id)
         ? '<button type="button" data-act="give">' + esc(t(L, 'give_btn', { name: itemName(L, item.id) })) + '</button>'
         : '';
+      const talkKey = touchOn() ? 'B' : 'E';
       html = card(name + '  ' + heart, [
         '<p class="talk">' + esc(page[L] || page.zh) + '</p>',
-        '<p class="hint">' + esc(t(L, 'talk_hint')) + '</p>',
+        '<p class="hint">' + esc(t(L, 'talk_hint', { key: talkKey })) + '</p>',
         '<div class="row-btns">' + giveBtn + '<button type="button" data-act="close">' + esc(t(L, 'close')) + '</button></div>',
       ], def ? '' : '');
     } else if (state.panel === 'inventory') {

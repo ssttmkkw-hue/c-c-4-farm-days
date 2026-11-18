@@ -1,7 +1,8 @@
 import { PAL, SEASON_GRASS, SKY } from '../data/palette.js';
 import { CROPS } from '../data/crops.js';
+import { t } from '../data/strings.js';
 import { phaseOf } from '../game/calendar.js';
-import { aimTile } from '../game/actions.js';
+import { aimTile, hintTile } from '../game/actions.js';
 import { plotAt } from '../game/state.js';
 import { getMap } from '../world/maps.js';
 import { TILE, VIEW_H, VIEW_W, tileAt } from '../world/tiles.js';
@@ -25,8 +26,9 @@ export function cameraFor(state) {
 }
 
 export function fitCanvas(canvas, reserveBottom) {
-  const maxW = Math.max(160, window.innerWidth - 8);
-  const maxH = Math.max(160, window.innerHeight - reserveBottom);
+  const chrome = 28;
+  const maxW = Math.max(160, window.innerWidth - chrome);
+  const maxH = Math.max(140, window.innerHeight - reserveBottom - 12);
   let scale = Math.floor(Math.min(maxW / VIEW_W, maxH / VIEW_H));
   if (scale < 1) scale = 1;
   if (scale > 5) scale = 5;
@@ -37,34 +39,51 @@ export function fitCanvas(canvas, reserveBottom) {
     canvas.style.width = VIEW_W * scale + 'px';
     canvas.style.height = VIEW_H * scale + 'px';
   }
+  document.documentElement.style.setProperty('--s', String(scale));
   return scale;
 }
+
+const FLOOR_DECOR = new Set(['rug', 'mat']);
+const SIGN_CHAR = { w: 'well', X: 'bin', B: 'bed', k: 'counter', c: 'chest', P: 'board' };
 
 export function render(ctx, state) {
   ctx.imageSmoothingEnabled = false;
   const { x: camX, y: camY, map } = cameraFor(state);
-  const sky = skyColor(state);
-  ctx.fillStyle = sky;
+  const indoor = state.location === 'house' || state.location === 'shop';
+  ctx.fillStyle = indoor ? '#b8895c' : skyColor(state);
   ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+  if (indoor) drawIndoorMargin(ctx, state);
 
   const x0 = Math.max(0, Math.floor(camX / TILE) - 1);
   const y0 = Math.max(0, Math.floor(camY / TILE) - 1);
   const x1 = Math.min(map.w, Math.ceil((camX + VIEW_W) / TILE) + 1);
   const y1 = Math.min(map.h, Math.ceil((camY + VIEW_H) / TILE) + 1);
 
+  const ents = [];
   for (let y = y0; y < y1; y++) {
     for (let x = x0; x < x1; x++) {
-      drawGround(ctx, state, map, x, y, x * TILE - camX, y * TILE - camY);
-    }
-  }
-  for (let y = y0; y < y1; y++) {
-    for (let x = x0; x < x1; x++) {
-      drawProp(ctx, state, map, x, y, x * TILE - camX, y * TILE - camY);
+      const sx = x * TILE - camX;
+      const sy = y * TILE - camY;
+      drawGround(ctx, state, map, x, y, sx, sy);
+      queueProp(ents, ctx, state, map, x, y, sx, sy);
     }
   }
 
-  const ents = [];
+  if (map.decor) {
+    for (const d of map.decor) {
+      const sx = d.x * TILE - camX;
+      const sy = d.y * TILE - camY;
+      if (sx < -20 || sy < -20 || sx > VIEW_W + 8 || sy > VIEW_H + 8) continue;
+      if (FLOOR_DECOR.has(d.kind)) drawDecorKind(ctx, d.kind, sx, sy);
+      else ents.push({ y: d.y + 0.35, draw: () => drawDecorKind(ctx, d.kind, sx, sy) });
+    }
+  }
+
   if (state.location === 'farm') {
+    ents.push({
+      y: 8.2,
+      draw: () => drawBarn(ctx, 13 * TILE - camX, 7 * TILE - camY),
+    });
     for (const sp of state.sprinklers) {
       ents.push({ y: sp.y, draw: () => drawSprinkler(ctx, sp.x * TILE - camX, sp.y * TILE - camY) });
     }
@@ -74,9 +93,11 @@ export function render(ctx, state) {
         draw: () => {
           const sx = Math.round(a.x * TILE - camX);
           const sy = Math.round(a.y * TILE - camY);
-          const step = Math.floor(state.time / 30 + a.x * 4) % 2;
-          if (a.type === 'cow') drawCow(ctx, sx, sy, step, a.hasMilk);
-          else drawChicken(ctx, sx, sy, a.id, step, a.hasEgg);
+          const phase = Math.floor(state.time / 8 + a.x * 5);
+          const step = phase % 2;
+          const hop = phase % 9 === 0 ? -1 : 0;
+          if (a.type === 'cow') drawCow(ctx, sx, sy + hop, step, a.hasMilk, phase % 4 === 0);
+          else drawChicken(ctx, sx, sy + hop, a.id, step, a.hasEgg, a.dir === 'idle' || phase % 6 === 0);
         },
       });
     }
@@ -102,6 +123,21 @@ export function render(ctx, state) {
       drawPerson(ctx, sx, sy, 'player', state.player.dir, step);
     },
   });
+  if (state.location === 'farm') {
+    const px = Math.floor(state.player.x);
+    const py = Math.floor(state.player.y);
+    for (const plot of Object.values(state.plots || {})) {
+      if (!plot.crop) continue;
+      const sx = plot.x * TILE - camX;
+      const sy = plot.y * TILE - camY;
+      if (sx < -16 || sy < -16 || sx > VIEW_W || sy > VIEW_H) continue;
+      const onTile = plot.x === px && plot.y === py;
+      ents.push({
+        y: onTile ? state.player.y + 0.04 : plot.y + 0.02,
+        draw: () => drawCrop(ctx, sx, sy, plot),
+      });
+    }
+  }
   ents.sort((a, b) => a.y - b.y);
   for (const e of ents) e.draw();
 
@@ -109,11 +145,12 @@ export function render(ctx, state) {
     const aim = aimTile(state);
     const ax = aim.x * TILE - camX;
     const ay = aim.y * TILE - camY;
-    ctx.strokeStyle = 'rgba(255,250,242,0.55)';
+    ctx.strokeStyle = '#ffe7a0';
     ctx.lineWidth = 1;
     ctx.strokeRect(ax + 0.5, ay + 0.5, 15, 15);
   }
 
+  drawSigns(ctx, state, map, camX, camY, x0, y0, x1, y1);
   drawAtmosphere(ctx, state);
 }
 
@@ -137,7 +174,7 @@ function drawGround(ctx, state, map, x, y, sx, sy) {
     }
     if (season === 'winter' && (hash(x, y) & 5) === 0) px(ctx, sx + 5, sy + 4, 3, 2, PAL.white);
     if (ch === 'f') drawForage(ctx, state, x, y, sx, sy);
-    if (ch === 'g') drawFence(ctx, map, x, y, sx, sy, true);
+    if (state.location === 'farm' && y === 10 && (x === 15 || x === 16)) drawHay(ctx, sx, sy);
     return;
   }
   if (ch === ',') {
@@ -159,9 +196,12 @@ function drawGround(ctx, state, map, x, y, sx, sy) {
     return;
   }
   if (ch === 'F') {
-    px(ctx, sx, sy, 16, 16, '#c9a36a');
-    px(ctx, sx, sy + 4, 16, 1, '#a56b3c');
-    px(ctx, sx, sy + 11, 16, 1, '#a56b3c');
+    const plank = (hash(x, y) & 5) === 0 ? '#d7b483' : '#c9a36a';
+    px(ctx, sx, sy, 16, 16, plank);
+    px(ctx, sx, sy + 5, 16, 1, '#a56b3c');
+    px(ctx, sx, sy + 12, 16, 1, '#a56b3c');
+    if (tileAt(map, x, y - 1) === '#') px(ctx, sx, sy, 16, 3, '#6a4a30');
+    if (tileAt(map, x, y + 1) === '#') px(ctx, sx, sy + 13, 16, 3, '#6a4a30');
     return;
   }
   if (ch === '#') {
@@ -177,77 +217,132 @@ function drawGround(ctx, state, map, x, y, sx, sy) {
       px(ctx, sx, sy + 12, 16, 4, '#244622');
     } else {
       px(ctx, sx, sy, 16, 16, (SEASON_GRASS[season] || SEASON_GRASS.spring).b);
-      drawTree(ctx, sx, sy, season, x, y);
     }
     return;
   }
   px(ctx, sx, sy, 16, 16, g.b);
 }
 
-function drawProp(ctx, state, map, x, y, sx, sy) {
+function queueProp(ents, ctx, state, map, x, y, sx, sy) {
   const ch = tileAt(map, x, y);
-  if (ch === 'H' || ch === 'D') drawHouse(ctx, map, x, y, sx, sy, ch);
-  else if (ch === '=') drawFence(ctx, map, x, y, sx, sy, false);
-  else if (ch === 'w') drawWell(ctx, sx, sy);
-  else if (ch === 'X') drawBin(ctx, sx, sy);
-  else if (ch === 'c') drawChest(ctx, sx, sy);
-  else if (ch === 'B') drawBed(ctx, sx, sy);
-  else if (ch === 'k') drawCounter(ctx, sx, sy);
-  else if (ch === 'P') drawBoard(ctx, sx, sy);
+  const indoor = state.location === 'house' || state.location === 'shop';
+  if (ch === '=' || ch === 'g') {
+    ents.push({ y: y + 0.55, draw: () => drawFence(ctx, map, x, y, sx, sy, ch === 'g') });
+  } else if (ch === 'H' || (ch === 'D' && !indoor)) {
+    ents.push({ y: y + 0.9, draw: () => drawHouse(ctx, map, x, y, sx, sy, ch) });
+  } else if (ch === 'D') {
+    ents.push({ y: y + 0.7, draw: () => drawIndoorDoor(ctx, sx, sy) });
+  } else if (ch === 'w') {
+    ents.push({ y: y + 0.45, draw: () => drawWell(ctx, sx, sy) });
+  } else if (ch === 'X') {
+    ents.push({ y: y + 0.45, draw: () => drawBin(ctx, sx, sy) });
+  } else if (ch === 'c') {
+    ents.push({ y: y + 0.45, draw: () => drawChest(ctx, sx, sy) });
+  } else if (ch === 'B') {
+    ents.push({ y: y + 0.45, draw: () => drawBed(ctx, sx, sy) });
+  } else if (ch === 'k') {
+    ents.push({ y: y + 0.5, draw: () => drawCounter(ctx, sx, sy) });
+  } else if (ch === 'P') {
+    ents.push({ y: y + 0.45, draw: () => drawBoard(ctx, sx, sy) });
+  } else if (canopyTree(map, x, y)) {
+    ents.push({ y: y + 0.8, draw: () => drawTree(ctx, sx, sy, state.season, x, y) });
+  }
+}
+
+function canopyTree(map, x, y) {
+  if (tileAt(map, x, y) !== 'T') return false;
+  const edge = x === 0 || y === 0 || x === map.w - 1 || y === map.h - 1;
+  return !(edge && ((x + y) & 1) === 1);
 }
 
 function drawSoil(ctx, state, x, y, sx, sy) {
   const plot = plotAt(state, x, y);
-  const wet = plot && plot.watered;
-  px(ctx, sx, sy, 16, 16, wet ? PAL.soilWet : PAL.soil);
-  px(ctx, sx, sy, 16, 1, '#6e8a48');
-  if (plot && plot.tilled) {
-    const line = wet ? '#2a1a12' : PAL.soilDark;
-    px(ctx, sx + 2, sy + 4, 12, 1, line);
-    px(ctx, sx + 2, sy + 8, 12, 1, line);
-    px(ctx, sx + 2, sy + 12, 12, 1, line);
+  const tilled = !!(plot && plot.tilled);
+  const wet = !!(plot && plot.watered && tilled);
+  if (!tilled) {
+    const winter = state.season === 'winter';
+    px(ctx, sx, sy, 16, 16, winter ? '#b7c4c4' : '#4f8a34');
+    px(ctx, sx + 1, sy + 2, 14, 12, winter ? '#d5dde0' : '#8a5a32');
+    px(ctx, sx + 3, sy + 4, 10, 8, winter ? '#e7eef0' : '#c48955');
+    px(ctx, sx, sy, 16, 1, winter ? '#8ea3ab' : '#2f6a24');
+    px(ctx, sx, sy + 15, 16, 1, winter ? '#8ea3ab' : '#2f6a24');
+    return;
   }
-  if (plot && plot.crop) drawCrop(ctx, sx, sy, plot);
-  if (wet) px(ctx, sx + 12, sy + 2, 2, 1, PAL.waterLite);
+  px(ctx, sx, sy, 16, 16, wet ? '#2a160e' : '#d08948');
+  px(ctx, sx, sy, 16, 2, wet ? '#1a0e0a' : '#a86a32');
+  const furrow = wet ? '#120c09' : '#5c3418';
+  px(ctx, sx + 1, sy + 5, 14, 2, furrow);
+  px(ctx, sx + 1, sy + 9, 14, 2, furrow);
+  px(ctx, sx + 1, sy + 13, 14, 2, furrow);
+  if (wet) {
+    px(ctx, sx + 2, sy + 3, 6, 1, '#7eb6d4');
+    px(ctx, sx + 9, sy + 7, 5, 1, '#3d78a0');
+    px(ctx, sx + 4, sy + 11, 4, 1, '#c5e6f4');
+  } else {
+    px(ctx, sx + 2, sy + 3, 5, 1, '#f0c08a');
+  }
 }
 
 function drawCrop(ctx, sx, sy, plot) {
   const def = CROPS[plot.crop];
   if (!def) return;
   if (plot.wilted) {
-    px(ctx, sx + 7, sy + 8, 2, 6, '#8a6a4a');
-    px(ctx, sx + 4, sy + 6, 4, 2, '#6e5340');
-    px(ctx, sx + 9, sy + 7, 3, 2, '#6e5340');
+    px(ctx, sx + 6, sy + 7, 4, 7, '#6e5340');
+    px(ctx, sx + 2, sy + 6, 6, 3, '#8a6a4a');
+    px(ctx, sx + 9, sy + 7, 5, 3, '#5c4030');
+    px(ctx, sx + 4, sy + 4, 2, 4, '#4a3428');
     return;
   }
+  px(ctx, sx + 3, sy + 11, 10, 4, '#4a2e1c');
+  px(ctx, sx + 5, sy + 12, 6, 2, '#2c1a10');
   if (plot.stage <= 0) {
-    px(ctx, sx + 5, sy + 8, 2, 2, '#3e291c');
-    px(ctx, sx + 9, sy + 10, 2, 2, '#3e291c');
+    px(ctx, sx + 6, sy + 4, 2, 8, '#d6f58a');
+    px(ctx, sx + 4, sy + 3, 5, 3, '#8fd15a');
+    px(ctx, sx + 3, sy + 4, 2, 2, '#2f6a24');
+    px(ctx, sx + 10, sy + 5, 2, 7, '#c6ef70');
+    px(ctx, sx + 9, sy + 4, 4, 3, '#3f7a32');
+    px(ctx, sx + 7, sy + 12, 2, 2, '#fffaf2');
     return;
   }
   const ready = plot.stage >= def.days;
-  const mid = plot.stage >= Math.ceil(def.days / 2);
-  px(ctx, sx + 7, sy + 8, 2, 6, '#3f7a32');
-  if (!mid) {
-    px(ctx, sx + 5, sy + 7, 3, 3, def.leaf);
-    px(ctx, sx + 9, sy + 8, 2, 2, def.leaf);
-    return;
+  const showing = plot.stage >= Math.max(1, def.days - 1);
+  px(ctx, sx + 7, sy + 2, 2, 11, '#246024');
+  px(ctx, sx + 1, sy + 5, 6, 5, def.leaf);
+  px(ctx, sx + 9, sy + 6, 6, 5, def.leaf);
+  px(ctx, sx + 3, sy + 4, 4, 3, '#e7f8b0');
+  px(ctx, sx + 10, sy + 5, 3, 2, '#e7f8b0');
+  if (showing || plot.stage >= 2) {
+    px(ctx, sx, sy + 8, 6, 4, def.leaf);
+    px(ctx, sx + 10, sy + 9, 6, 4, def.leaf);
+    px(ctx, sx + 5, sy + 1, 6, 4, def.leaf);
   }
-  px(ctx, sx + 3, sy + 6, 4, 4, def.leaf);
-  px(ctx, sx + 9, sy + 7, 4, 3, def.leaf);
   if (ready) {
     if (plot.crop === 'corn') {
-      px(ctx, sx + 6, sy + 2, 4, 7, def.fruit);
-      px(ctx, sx + 7, sy + 3, 2, 5, '#f6e27a');
+      px(ctx, sx + 5, sy + 0, 6, 10, def.fruit);
+      px(ctx, sx + 6, sy + 2, 4, 6, '#fff3b0');
+      px(ctx, sx + 2, sy + 3, 3, 6, def.leaf);
+      px(ctx, sx + 11, sy + 3, 3, 6, def.leaf);
     } else if (plot.crop === 'cabbage') {
-      px(ctx, sx + 4, sy + 5, 8, 6, def.fruit);
+      px(ctx, sx + 2, sy + 4, 12, 9, def.fruit);
+      px(ctx, sx + 5, sy + 6, 6, 4, '#e7f8b0');
     } else if (plot.crop === 'pumpkin') {
-      px(ctx, sx + 4, sy + 7, 8, 6, def.fruit);
-      px(ctx, sx + 7, sy + 6, 2, 2, '#3f7a32');
+      px(ctx, sx + 2, sy + 6, 12, 8, def.fruit);
+      px(ctx, sx + 6, sy + 4, 4, 3, '#3f7a32');
+      px(ctx, sx + 4, sy + 8, 3, 2, '#f6c56a');
+    } else if (plot.crop === 'tomato') {
+      px(ctx, sx + 3, sy + 6, 5, 5, def.fruit);
+      px(ctx, sx + 8, sy + 8, 5, 5, def.fruit);
+      px(ctx, sx + 6, sy + 4, 4, 4, '#ff6a4a');
     } else {
-      px(ctx, sx + 4, sy + 8, 4, 4, def.fruit);
-      px(ctx, sx + 9, sy + 9, 3, 3, def.fruit);
+      px(ctx, sx + 2, sy + 7, 12, 7, def.fruit);
+      px(ctx, sx + 4, sy + 8, 8, 4, '#fffaf2');
+      px(ctx, sx + 6, sy + 3, 4, 5, def.leaf);
     }
+    return;
+  }
+  if (showing) {
+    px(ctx, sx + 4, sy + 10, 8, 4, def.fruit);
+    px(ctx, sx + 6, sy + 9, 4, 2, '#fffaf2');
   }
 }
 
@@ -305,48 +400,73 @@ function drawFence(ctx, map, x, y, sx, sy, open) {
   const s = join(tileAt(map, x, y + 1));
   const w = join(tileAt(map, x - 1, y));
   const e = join(tileAt(map, x + 1, y));
-  if (!open) px(ctx, sx + 6, sy + 3, 4, 12, '#f3e2c4');
-  else px(ctx, sx + 2, sy + 10, 12, 3, '#f3e2c4');
+  if (open) {
+    px(ctx, sx + 1, sy + 5, 3, 9, '#f3e2c4');
+    px(ctx, sx + 12, sy + 5, 3, 9, '#f3e2c4');
+    px(ctx, sx + 1, sy + 12, 3, 3, '#a56b3c');
+    px(ctx, sx + 12, sy + 12, 3, 3, '#a56b3c');
+    return;
+  }
+  px(ctx, sx + 6, sy + 2, 4, 12, '#f3e2c4');
   if (w || e) px(ctx, sx, sy + 5, 16, 2, '#e2c79a');
   if (w || e) px(ctx, sx, sy + 10, 16, 2, '#c9a36a');
   if (n) px(ctx, sx + 7, sy, 2, 8, '#e2c79a');
-  if (s && !open) px(ctx, sx + 7, sy + 8, 2, 8, '#e2c79a');
+  if (s) px(ctx, sx + 7, sy + 8, 2, 8, '#e2c79a');
   px(ctx, sx + 6, sy + 12, 4, 3, '#a56b3c');
 }
 
 function drawWell(ctx, sx, sy) {
-  px(ctx, sx + 2, sy + 6, 12, 8, '#b9c0b4');
-  px(ctx, sx + 4, sy + 8, 8, 4, PAL.water);
-  px(ctx, sx + 3, sy + 4, 10, 3, '#8a8f86');
-  px(ctx, sx + 7, sy + 1, 2, 5, '#6e4324');
-  px(ctx, sx + 4, sy + 1, 8, 2, '#6e4324');
+  px(ctx, sx - 1, sy + 5, 18, 11, '#5c3b28');
+  px(ctx, sx + 1, sy + 7, 14, 8, '#d5ddd4');
+  px(ctx, sx + 3, sy + 9, 10, 5, '#2f78b0');
+  px(ctx, sx + 4, sy + 10, 8, 2, '#b7e4f6');
+  px(ctx, sx + 2, sy + 5, 12, 3, '#8a8f86');
+  px(ctx, sx + 7, sy + 0, 2, 7, '#5c3b28');
+  px(ctx, sx + 3, sy + 0, 10, 3, '#6e4324');
+  px(ctx, sx + 4, sy + 1, 8, 1, '#e6c15a');
 }
 
 function drawBin(ctx, sx, sy) {
-  px(ctx, sx + 2, sy + 5, 12, 9, '#a56b3c');
-  px(ctx, sx + 2, sy + 5, 12, 3, '#c4844e');
-  px(ctx, sx + 6, sy + 2, 4, 4, PAL.gold);
-  px(ctx, sx + 7, sy + 1, 2, 2, '#fffaf2');
+  px(ctx, sx, sy + 4, 16, 12, '#5c3b28');
+  px(ctx, sx + 1, sy + 6, 14, 9, '#c4844e');
+  px(ctx, sx + 1, sy + 6, 14, 3, '#e0a060');
+  px(ctx, sx, sy + 4, 16, 2, '#8d3428');
+  px(ctx, sx + 4, sy + 0, 8, 6, '#f0c14a');
+  px(ctx, sx + 6, sy + 1, 4, 4, '#fffaf2');
+  px(ctx, sx + 7, sy + 2, 2, 2, '#c4503a');
 }
 
 function drawChest(ctx, sx, sy) {
-  px(ctx, sx + 2, sy + 6, 12, 8, '#8d5a32');
-  px(ctx, sx + 2, sy + 6, 12, 3, '#c4844e');
+  px(ctx, sx + 1, sy + 5, 14, 10, '#6e4324');
+  px(ctx, sx + 2, sy + 6, 12, 8, '#c4844e');
+  px(ctx, sx + 2, sy + 6, 12, 3, '#e0a060');
   px(ctx, sx + 7, sy + 9, 2, 2, PAL.gold);
 }
 
 function drawBed(ctx, sx, sy) {
-  px(ctx, sx + 1, sy + 4, 14, 10, '#f4efe4');
-  px(ctx, sx + 1, sy + 8, 14, 6, '#c4503a');
-  px(ctx, sx + 2, sy + 5, 5, 3, '#fffaf2');
-  px(ctx, sx + 1, sy + 3, 14, 2, '#6e4324');
+  px(ctx, sx, sy + 2, 16, 14, '#5c3b28');
+  px(ctx, sx + 1, sy + 5, 14, 10, '#fffaf2');
+  px(ctx, sx + 1, sy + 8, 14, 7, '#d45340');
+  px(ctx, sx + 2, sy + 5, 6, 4, '#f6edd8');
+  px(ctx, sx + 10, sy + 3, 4, 3, '#e6c15a');
 }
 
 function drawCounter(ctx, sx, sy) {
-  px(ctx, sx, sy + 4, 16, 12, '#a56b3c');
-  px(ctx, sx, sy + 4, 16, 3, '#c4844e');
-  px(ctx, sx + 3, sy + 8, 4, 3, '#f6edd8');
-  px(ctx, sx + 9, sy + 8, 4, 3, '#7fbf55');
+  px(ctx, sx, sy + 1, 16, 4, '#c4503a');
+  px(ctx, sx, sy + 4, 16, 1, '#f6edd8');
+  px(ctx, sx, sy + 5, 16, 11, '#6e4324');
+  px(ctx, sx + 1, sy + 6, 14, 8, '#d49255');
+  px(ctx, sx + 2, sy + 7, 4, 3, '#fffaf2');
+  px(ctx, sx + 8, sy + 7, 5, 3, '#7fbf55');
+  px(ctx, sx + 6, sy + 11, 4, 2, '#e6c15a');
+}
+
+function drawIndoorDoor(ctx, sx, sy) {
+  px(ctx, sx, sy, 16, 16, '#3a2718');
+  px(ctx, sx + 2, sy + 1, 12, 15, '#a56b3c');
+  px(ctx, sx + 3, sy + 2, 10, 7, '#c4844e');
+  px(ctx, sx + 10, sy + 9, 2, 2, '#e6c15a');
+  px(ctx, sx, sy, 16, 2, '#2c241c');
 }
 
 function drawBoard(ctx, sx, sy) {
@@ -386,4 +506,137 @@ function fill(ctx, color, alpha) {
   ctx.fillStyle = color;
   ctx.fillRect(0, 0, VIEW_W, VIEW_H);
   ctx.restore();
+}
+
+function drawHay(ctx, sx, sy) {
+  px(ctx, sx + 2, sy + 6, 12, 8, '#e6c15a');
+  px(ctx, sx + 3, sy + 4, 10, 4, '#f3d98a');
+  px(ctx, sx + 4, sy + 9, 8, 3, '#c47a4a');
+}
+
+function drawBarn(ctx, sx, sy) {
+  const w = 16 * 6;
+  px(ctx, sx, sy, w, 8, '#c4503a');
+  px(ctx, sx, sy + 8, w, 4, '#8d3428');
+  px(ctx, sx + 4, sy + 12, 4, 18, '#f3e2c4');
+  px(ctx, sx + w - 8, sy + 12, 4, 18, '#f3e2c4');
+  px(ctx, sx + 18, sy + 16, 22, 12, '#f0d48a');
+  px(ctx, sx + 44, sy + 18, 18, 10, '#e6c15a');
+  px(ctx, sx + 24, sy + 14, 10, 6, '#c47a4a');
+  px(ctx, sx + w / 2 - 8, sy + 1, 16, 6, '#f6edd8');
+  px(ctx, sx + w / 2 - 6, sy + 2, 12, 1, '#c4503a');
+}
+
+function drawIndoorMargin(ctx) {
+  px(ctx, 0, 0, VIEW_W, 8, '#4a3428');
+  px(ctx, 0, VIEW_H - 8, VIEW_W, 8, '#4a3428');
+  px(ctx, 0, 0, 8, VIEW_H, '#4a3428');
+  px(ctx, VIEW_W - 8, 0, 8, VIEW_H, '#4a3428');
+}
+
+function drawDecorKind(ctx, kind, sx, sy) {
+  if (kind === 'rug') {
+    px(ctx, sx, sy, 16, 16, '#7a2e28');
+    px(ctx, sx + 2, sy + 2, 12, 12, '#c4503a');
+    px(ctx, sx + 5, sy + 5, 6, 6, '#e6c15a');
+    return;
+  }
+  if (kind === 'mat') {
+    px(ctx, sx + 1, sy + 5, 14, 8, '#7a2e28');
+    px(ctx, sx + 3, sy + 7, 10, 4, '#e6c15a');
+    return;
+  }
+  if (kind === 'table') {
+    px(ctx, sx + 1, sy + 6, 14, 8, '#5c3b28');
+    px(ctx, sx + 2, sy + 3, 12, 5, '#d49255');
+    px(ctx, sx + 3, sy + 4, 3, 2, '#fffaf2');
+    px(ctx, sx + 9, sy + 4, 3, 2, '#e04b3a');
+    return;
+  }
+  if (kind === 'plant') {
+    px(ctx, sx + 5, sy + 9, 6, 6, '#a56b3c');
+    px(ctx, sx + 3, sy + 4, 10, 6, '#2f6a24');
+    px(ctx, sx + 5, sy + 2, 6, 4, '#8fd15a');
+    px(ctx, sx + 2, sy + 6, 4, 3, '#6eaf45');
+    return;
+  }
+  if (kind === 'shelf') {
+    px(ctx, sx, sy + 3, 16, 12, '#5c3b28');
+    px(ctx, sx, sy + 3, 16, 3, '#c4844e');
+    px(ctx, sx + 2, sy + 8, 3, 3, '#e04b3a');
+    px(ctx, sx + 7, sy + 8, 3, 3, '#f0d24a');
+    px(ctx, sx + 11, sy + 8, 3, 3, '#7fbf55');
+    return;
+  }
+  if (kind === 'lamp') {
+    px(ctx, sx + 7, sy + 7, 2, 8, '#6e4324');
+    px(ctx, sx + 3, sy + 2, 10, 6, '#f0d24a');
+    px(ctx, sx + 5, sy + 3, 6, 3, '#fffaf2');
+    return;
+  }
+  if (kind === 'window') {
+    px(ctx, sx + 2, sy + 3, 12, 10, '#7ec8ea');
+    px(ctx, sx + 7, sy + 3, 2, 10, '#f3e2c4');
+    px(ctx, sx + 2, sy + 7, 12, 2, '#f3e2c4');
+    px(ctx, sx + 1, sy + 2, 14, 1, '#6e4324');
+    px(ctx, sx + 1, sy + 13, 14, 1, '#6e4324');
+    return;
+  }
+  if (kind === 'crate') {
+    px(ctx, sx + 2, sy + 5, 12, 10, '#a56b3c');
+    px(ctx, sx + 2, sy + 5, 12, 3, '#e0a060');
+    px(ctx, sx + 4, sy + 9, 8, 1, '#6e4324');
+    px(ctx, sx + 7, sy + 6, 1, 8, '#6e4324');
+  }
+}
+
+function signAnchor(map, x, y, ch) {
+  return tileAt(map, x - 1, y) !== ch && tileAt(map, x, y - 1) !== ch;
+}
+
+function interactKey(state) {
+  if (state.touch === 'off') return 'E';
+  if (state.touch === 'on') return 'B';
+  if (typeof window !== 'undefined' && (window.innerWidth < 820 || window.matchMedia('(pointer: coarse)').matches)) return 'B';
+  return 'E';
+}
+
+function drawPlate(ctx, cx, sy, text, hot) {
+  ctx.save();
+  ctx.font = 'bold 8px "Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif';
+  ctx.textBaseline = 'top';
+  const w = Math.min(78, Math.ceil(ctx.measureText(text).width) + 6);
+  const h = 11;
+  const x = Math.round(cx - w / 2);
+  const y = Math.round(sy);
+  px(ctx, x, y, w, h, hot ? '#e6c15a' : '#fffaf2');
+  px(ctx, x, y, w, 1, '#2c241c');
+  px(ctx, x, y + h - 1, w, 1, '#2c241c');
+  px(ctx, x, y, 1, h, '#2c241c');
+  px(ctx, x + w - 1, y, 1, h, '#2c241c');
+  ctx.fillStyle = '#2c241c';
+  ctx.fillText(text, x + 3, y + 1);
+  ctx.restore();
+}
+
+function drawSigns(ctx, state, map, camX, camY, x0, y0, x1, y1) {
+  const lang = state.lang === 'en' ? 'en' : 'zh';
+  const hint = hintTile(state);
+  const bob = hint ? (Math.floor(state.time * 1.4) % 2) : 0;
+  const indoor = state.location === 'house' || state.location === 'shop';
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) {
+      const ch = tileAt(map, x, y);
+      let id = SIGN_CHAR[ch];
+      if (ch === 'D') id = indoor ? 'exit' : 'enter';
+      if (!id || !signAnchor(map, x, y, ch)) continue;
+      const near = hint && !hint.float && hint.id === id && Math.abs(hint.x - x) + Math.abs(hint.y - y) <= 12;
+      const label = (near ? interactKey(state) + ' ' : '') + t(lang, 'sign_' + id);
+      drawPlate(ctx, x * TILE - camX + 8, y * TILE - camY - 12 - (near ? bob : 0), label, !!near);
+    }
+  }
+  if (hint && hint.float) {
+    const label = interactKey(state) + ' ' + t(lang, 'sign_' + hint.id);
+    drawPlate(ctx, hint.x * TILE - camX + 8, hint.y * TILE - camY - 18 - bob, label, true);
+  }
 }

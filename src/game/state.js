@@ -69,7 +69,7 @@ export function createState(lang = 'zh', muted = false) {
     animals: [
       { id: 'cluck', type: 'chicken', zh: '咕咕', en: 'Cluck', map: 'farm', fed: false, petted: false, hasEgg: false, mood: 4, x: 4.4, y: 8.4, dir: 'right', timer: 0.4 },
       { id: 'peck', type: 'chicken', zh: '啄啄', en: 'Peck', map: 'farm', fed: false, petted: false, hasEgg: false, mood: 4, x: 6.4, y: 8.8, dir: 'left', timer: 1.1 },
-      { id: 'moo', type: 'cow', zh: '哞哞', en: 'Moo', map: 'farm', fed: false, petted: false, hasMilk: false, mood: 4, x: 5.2, y: 13.5, dir: 'right', timer: 0.2 },
+      { id: 'moo', type: 'cow', zh: '哞哞', en: 'Moo', map: 'farm', fed: false, petted: false, hasMilk: false, mood: 4, x: 15.2, y: 10.3, dir: 'right', timer: 0.2 },
     ],
     npcs: NPC_DEFS.map((d) => ({
       id: d.id,

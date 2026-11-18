@@ -14,12 +14,17 @@ export const NPC_DEFS = [
     zh: '花婶',
     en: 'Aunt Hua',
     map: 'shop',
-    x: 10,
-    y: 5,
+    x: 15,
+    y: 6,
     liked: 'egg',
     disliked: 'forage_cone',
     look: 'hua',
-    waypoints: [{ x: 10, y: 5 }],
+    waypoints: [
+      { x: 15, y: 6 },
+      { x: 17, y: 6 },
+      { x: 17, y: 8 },
+      { x: 15, y: 8 },
+    ],
     lines: {
       low: [
         pages([

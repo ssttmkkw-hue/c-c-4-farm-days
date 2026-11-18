@@ -331,7 +331,7 @@ export function useTool(state) {
   if (item.id === 'feed') {
     const animal = nearestAnimal(state, 1.8);
     if (!animal) {
-      showToast(state, 'toast_nothing');
+      showToast(state, 'toast_no_animal');
       return false;
     }
     return feed(state, animal.id);
@@ -768,8 +768,8 @@ export function doPassout(state) {
   state._passing = true;
   endDay(state, 'passout');
   state.location = 'house';
-  state.player.x = 6;
-  state.player.y = 7;
+  state.player.x = 5;
+  state.player.y = 6;
   state.player.dir = 'down';
   state.linkLock = true;
   state.panel = 'passout';
@@ -878,6 +878,39 @@ function tileObject(state, map, x, y, standing) {
     return true;
   }
   return false;
+}
+
+const SIGN_TILE = {
+  w: 'well',
+  X: 'bin',
+  B: 'bed',
+  k: 'counter',
+  c: 'chest',
+  P: 'board',
+};
+
+export function hintTile(state) {
+  if (!state?.player || state.panel || state.screen !== 'play') return null;
+  const map = getMap(state.location);
+  const a = actionTiles(state);
+  const indoor = state.location === 'house' || state.location === 'shop';
+  const spots = [[a.fx, a.fy], [a.x, a.y]];
+  for (const [x, y] of spots) {
+    const ch = tileAt(map, x, y);
+    if (SIGN_TILE[ch]) return { x, y, id: SIGN_TILE[ch] };
+    if (ch === 'D') return { x, y, id: indoor ? 'exit' : 'enter' };
+    if (findLink(map, x, y)) return { x, y, id: 'exit' };
+  }
+  const npc = nearestNpc(state, 1.7);
+  if (npc) return { x: npc.x, y: npc.y, id: 'talk', float: true };
+  const animal = nearestAnimal(state, 1.55);
+  if (animal) return { x: animal.x, y: animal.y, id: animal.type === 'cow' ? 'cow' : 'hen', float: true };
+  const plot = plotAt(state, a.fx, a.fy) || plotAt(state, a.x, a.y);
+  if (plot && plot.crop && !plot.wilted) {
+    const def = CROPS[plot.crop];
+    if (def && plot.stage >= def.days) return { x: plot.x, y: plot.y, id: 'harvest', float: true };
+  }
+  return null;
 }
 
 export function togglePanel(state, name) {

@@ -100,7 +100,10 @@ const api = createApi(ctx);
 window.__farm = api;
 
 function layout() {
-  const reserve = ui.touchOn() ? 176 : 10;
+  const playing = !!(ctx.state?.started && ctx.state.screen === 'play');
+  const touch = ui.touchOn() && playing;
+  const narrow = window.innerWidth < 820;
+  const reserve = touch ? (narrow ? 176 : 196) : 16;
   fitCanvas(canvas, reserve);
 }
 
