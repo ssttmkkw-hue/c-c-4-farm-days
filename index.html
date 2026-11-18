@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#1d2a1c">
+  <title>牧场日常 Farm Days</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2386c75a'/%3E%3Crect x='7' y='8' width='2' height='6' fill='%236e4324'/%3E%3Crect x='3' y='3' width='10' height='6' fill='%234f8a3a'/%3E%3Crect x='6' y='5' width='2' height='2' fill='%23f3b7c4'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="frame">
+    <canvas id="view" width="320" height="224" aria-label="Farm Days"></canvas>
+    <div id="hud" hidden>
+      <div class="hud-top">
+        <span id="hud-date"></span>
+        <span id="hud-time"></span>
+        <span id="hud-gold"></span>
+        <span id="hud-loc"></span>
+        <span class="hud-actions">
+          <button type="button" id="btn-lang" aria-label="Language">EN</button>
+          <button type="button" id="btn-mute" aria-label="Sound">♪</button>
+          <button type="button" id="btn-menu" aria-label="Menu">≡</button>
+        </span>
+      </div>
+      <div class="energy" aria-hidden="true"><div id="energy-fill"></div></div>
+      <div class="hud-sub"><span id="energy-label"></span><span id="hud-held"></span><span id="hud-can"></span></div>
+    </div>
+    <div id="toast" hidden></div>
+    <div id="hotbar"></div>
+    <div id="panel" hidden></div>
+  </div>
+
+  <div id="touch" hidden>
+    <div class="dpad" aria-hidden="false">
+      <button type="button" data-dir="up" aria-label="Up">↑</button>
+      <button type="button" data-dir="left" aria-label="Left">←</button>
+      <button type="button" data-dir="down" aria-label="Down">↓</button>
+      <button type="button" data-dir="right" aria-label="Right">→</button>
+    </div>
+    <div class="t-actions">
+      <button type="button" data-btn="use" aria-label="Use tool">A</button>
+      <button type="button" data-btn="interact" aria-label="Interact">B</button>
+    </div>
+    <div class="t-menu">
+      <button type="button" data-btn="inv" aria-label="Bag">袋</button>
+      <button type="button" data-btn="cal" aria-label="Calendar">历</button>
+      <button type="button" data-btn="sleep" aria-label="Sleep">睡</button>
+      <button type="button" data-btn="menu" aria-label="Menu">≡</button>
+    </div>
+  </div>
+
+  <div id="title">
+    <div class="title-card">
+      <p class="eyebrow">Greengrain · 青禾</p>
+      <h1 id="title-name">牧场日常</h1>
+      <p id="title-sub">青禾村的小小一年</p>
+      <button type="button" id="btn-new">新的一天</button>
+      <button type="button" id="btn-continue">继续</button>
+      <button type="button" id="title-lang">English</button>
+      <p id="title-hint"></p>
+    </div>
+  </div>
+  <noscript><p class="noscript">请打开 JavaScript 再来农场。 Enable JavaScript to visit the farm.</p></noscript>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
