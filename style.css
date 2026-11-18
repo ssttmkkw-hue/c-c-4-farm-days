@@ -49,6 +49,12 @@ body.touch-on {
   justify-content: flex-start;
 }
 
+/* Portrait: pin the pad to the bottom so the empty band is not under the buttons. */
+body.touch-on:not(.touch-sides) #touch {
+  margin-top: auto;
+  flex: 0 0 auto;
+}
+
 .hud-cluster { display: contents; }
 
 #hud-gold { white-space: nowrap; }
